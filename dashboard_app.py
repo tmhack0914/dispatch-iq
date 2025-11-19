@@ -444,101 +444,101 @@ else:
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-    st.markdown("### 🎯 Success Probability")
-    initial_success = filtered_df['Initial_success_prob'].mean()
-    optimized_success = filtered_df['Predicted_success_prob'].mean()
-    success_change = optimized_success - initial_success
-    
-    st.metric(
-        label="Initial",
-        value=f"{initial_success:.3f}",
-        delta=None
-    )
-    st.metric(
-        label="Optimized",
-        value=f"{optimized_success:.3f}",
-        delta=f"{success_change:+.3f}",
-        delta_color="normal" if success_change >= 0 else "inverse"
-    )
+        st.markdown("### 🎯 Success Probability")
+        initial_success = filtered_df['Initial_success_prob'].mean()
+        optimized_success = filtered_df['Predicted_success_prob'].mean()
+        success_change = optimized_success - initial_success
+        
+        st.metric(
+            label="Initial",
+            value=f"{initial_success:.3f}",
+            delta=None
+        )
+        st.metric(
+            label="Optimized",
+            value=f"{optimized_success:.3f}",
+            delta=f"{success_change:+.3f}",
+            delta_color="normal" if success_change >= 0 else "inverse"
+        )
 
     with col2:
-    st.markdown("### 📍 Average Distance")
-    initial_dist = filtered_df['Initial_distance_km'].mean()
-    optimized_dist = filtered_df['Optimized_distance_km'].mean()
-    dist_change = optimized_dist - initial_dist
-    
-    st.metric(
-        label="Initial",
-        value=f"{initial_dist:.1f} km",
-        delta=None
-    )
-    st.metric(
-        label="Optimized",
-        value=f"{optimized_dist:.1f} km",
-        delta=f"{dist_change:+.1f} km",
-        delta_color="inverse" if dist_change < 0 else "normal"
-    )
+        st.markdown("### 📍 Average Distance")
+        initial_dist = filtered_df['Initial_distance_km'].mean()
+        optimized_dist = filtered_df['Optimized_distance_km'].mean()
+        dist_change = optimized_dist - initial_dist
+        
+        st.metric(
+            label="Initial",
+            value=f"{initial_dist:.1f} km",
+            delta=None
+        )
+        st.metric(
+            label="Optimized",
+            value=f"{optimized_dist:.1f} km",
+            delta=f"{dist_change:+.1f} km",
+            delta_color="inverse" if dist_change < 0 else "normal"
+        )
 
     with col3:
-    st.markdown("### ⚖️ Workload Ratio")
-    initial_workload = filtered_df['Initial_workload_ratio'].mean()
-    optimized_workload = filtered_df['Optimized_workload_ratio'].mean()
-    workload_change = optimized_workload - initial_workload
-    
-    st.metric(
-        label="Initial",
-        value=f"{initial_workload:.1%}",
-        delta=None
-    )
-    st.metric(
-        label="Optimized",
-        value=f"{optimized_workload:.1%}",
-        delta=f"{workload_change:+.1%}",
-        delta_color="normal" if abs(workload_change) < 0.05 else "inverse"
-    )
+        st.markdown("### ⚖️ Workload Ratio")
+        initial_workload = filtered_df['Initial_workload_ratio'].mean()
+        optimized_workload = filtered_df['Optimized_workload_ratio'].mean()
+        workload_change = optimized_workload - initial_workload
+        
+        st.metric(
+            label="Initial",
+            value=f"{initial_workload:.1%}",
+            delta=None
+        )
+        st.metric(
+            label="Optimized",
+            value=f"{optimized_workload:.1%}",
+            delta=f"{workload_change:+.1%}",
+            delta_color="normal" if abs(workload_change) < 0.05 else "inverse"
+        )
 
     with col4:
-    st.markdown("### 💪 Confidence Score")
-    initial_conf = filtered_df['Initial_confidence'].mean()
-    optimized_conf = filtered_df['Optimization_confidence'].mean()
-    conf_change = optimized_conf - initial_conf
-    
-    st.metric(
-        label="Initial",
-        value=f"{initial_conf:.3f}",
-        delta=None
-    )
-    st.metric(
-        label="Optimized",
-        value=f"{optimized_conf:.3f}",
-        delta=f"{conf_change:+.3f}",
-        delta_color="normal" if conf_change >= 0 else "inverse"
-    )
+        st.markdown("### 💪 Confidence Score")
+        initial_conf = filtered_df['Initial_confidence'].mean()
+        optimized_conf = filtered_df['Optimization_confidence'].mean()
+        conf_change = optimized_conf - initial_conf
+        
+        st.metric(
+            label="Initial",
+            value=f"{initial_conf:.3f}",
+            delta=None
+        )
+        st.metric(
+            label="Optimized",
+            value=f"{optimized_conf:.3f}",
+            delta=f"{conf_change:+.3f}",
+            delta_color="normal" if conf_change >= 0 else "inverse"
+        )
 
     # Summary bar with key improvements
     st.markdown("---")
     col1, col2, col3 = st.columns(3)
 
     with col1:
-    total_distance_saved = (filtered_df['Initial_distance_km'].sum() - filtered_df['Optimized_distance_km'].sum())
-    st.markdown(f"### 🚗 Distance Saved")
-    st.markdown(f"<h2 style='text-align: center; color: #2ecc71;'>{abs(total_distance_saved):.0f} km</h2>", unsafe_allow_html=True)
-    st.markdown(f"<p style='text-align: center;'>Fuel savings: ${abs(total_distance_saved * 0.50):.0f}</p>", unsafe_allow_html=True)
+        total_distance_saved = (filtered_df['Initial_distance_km'].sum() - filtered_df['Optimized_distance_km'].sum())
+        st.markdown(f"### 🚗 Distance Saved")
+        st.markdown(f"<h2 style='text-align: center; color: #2ecc71;'>{abs(total_distance_saved):.0f} km</h2>", unsafe_allow_html=True)
+        st.markdown(f"<p style='text-align: center;'>Fuel savings: ${abs(total_distance_saved * 0.50):.0f}</p>", unsafe_allow_html=True)
 
     with col2:
-    improved_count = (filtered_df['Success_prob_improvement'] > 0).sum()
-    total_count = len(filtered_df)
-    improvement_pct = (improved_count / total_count * 100) if total_count > 0 else 0
-    st.markdown(f"### 📈 Improved Assignments")
-    st.markdown(f"<h2 style='text-align: center; color: #3498db;'>{improved_count} / {total_count}</h2>", unsafe_allow_html=True)
-    st.markdown(f"<p style='text-align: center;'>{improvement_pct:.1f}% improved</p>", unsafe_allow_html=True)
+        improved_count = (filtered_df['Success_prob_improvement'] > 0).sum()
+        total_count = len(filtered_df)
+        improvement_pct = (improved_count / total_count * 100) if total_count > 0 else 0
+        st.markdown(f"### 📈 Improved Assignments")
+        st.markdown(f"<h2 style='text-align: center; color: #3498db;'>{improved_count} / {total_count}</h2>", unsafe_allow_html=True)
+        st.markdown(f"<p style='text-align: center;'>{improvement_pct:.1f}% improved</p>", unsafe_allow_html=True)
 
     with col3:
-    assigned_count = filtered_df['Optimized_technician_id'].notna().sum()
-    assignment_rate = (assigned_count / len(filtered_df) * 100) if len(filtered_df) > 0 else 0
-    st.markdown(f"### ✅ Assignment Rate")
-    st.markdown(f"<h2 style='text-align: center; color: #9b59b6;'>{assignment_rate:.1f}%</h2>", unsafe_allow_html=True)
-    st.markdown(f"<p style='text-align: center;'>{assigned_count} of {len(filtered_df)} assigned</p>", unsafe_allow_html=True)
+        assigned_count = filtered_df['Optimized_technician_id'].notna().sum()
+        assignment_rate = (assigned_count / len(filtered_df) * 100) if len(filtered_df) > 0 else 0
+        st.markdown(f"### ✅ Assignment Rate")
+        st.markdown(f"<h2 style='text-align: center; color: #9b59b6;'>{assignment_rate:.1f}%</h2>", unsafe_allow_html=True)
+        st.markdown(f"<p style='text-align: center;'>{assigned_count} of {len(filtered_df)} assigned</p>", unsafe_allow_html=True)
 
     st.markdown("---")
 
@@ -546,33 +546,33 @@ else:
     st.subheader("📊 Visual Performance Comparison")
 
     comparison_data = pd.DataFrame({
-    'Metric': ['Success Probability', 'Success Probability', 'Avg Distance (km)', 'Avg Distance (km)', 
-               'Workload Ratio', 'Workload Ratio', 'Confidence', 'Confidence'],
-    'Type': ['Initial', 'Optimized', 'Initial', 'Optimized', 'Initial', 'Optimized', 'Initial', 'Optimized'],
-    'Value': [
-        initial_success, optimized_success,
-        initial_dist, optimized_dist,
-        initial_workload, optimized_workload,
-        initial_conf, optimized_conf
-    ]
+        'Metric': ['Success Probability', 'Success Probability', 'Avg Distance (km)', 'Avg Distance (km)', 
+                   'Workload Ratio', 'Workload Ratio', 'Confidence', 'Confidence'],
+        'Type': ['Initial', 'Optimized', 'Initial', 'Optimized', 'Initial', 'Optimized', 'Initial', 'Optimized'],
+        'Value': [
+            initial_success, optimized_success,
+            initial_dist, optimized_dist,
+            initial_workload, optimized_workload,
+            initial_conf, optimized_conf
+        ]
     })
 
     fig_comparison = px.bar(
-    comparison_data,
-    x='Metric',
-    y='Value',
-    color='Type',
-    barmode='group',
-    title='Initial vs Optimized Performance Metrics',
-    color_discrete_map={'Initial': '#e74c3c', 'Optimized': '#2ecc71'},
-    height=400
+        comparison_data,
+        x='Metric',
+        y='Value',
+        color='Type',
+        barmode='group',
+        title='Initial vs Optimized Performance Metrics',
+        color_discrete_map={'Initial': '#e74c3c', 'Optimized': '#2ecc71'},
+        height=400
     )
 
     fig_comparison.update_layout(
-    xaxis_title='',
-    yaxis_title='Value',
-    legend_title='',
-    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+        xaxis_title='',
+        yaxis_title='Value',
+        legend_title='',
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
 
     st.plotly_chart(fig_comparison, width='stretch')
@@ -603,43 +603,43 @@ else:
     fuel_savings = abs(total_distance_saved) * 0.50  # $0.50 per km
 
     with col1:
-    st.metric(
-        "Assignment Rate",
-        f"{assignment_rate:.1f}%",
-        f"{assigned_count} / {len(filtered_df)}"
-    )
+        st.metric(
+            "Assignment Rate",
+            f"{assignment_rate:.1f}%",
+            f"{assigned_count} / {len(filtered_df)}"
+        )
 
     with col2:
-    st.metric(
-        "Avg Success Probability",
-        f"{avg_optimized_success:.3f}",
-        f"{success_improvement:+.3f}",
-        delta_color="normal" if success_improvement >= 0 else "inverse"
-    )
+        st.metric(
+            "Avg Success Probability",
+            f"{avg_optimized_success:.3f}",
+            f"{success_improvement:+.3f}",
+            delta_color="normal" if success_improvement >= 0 else "inverse"
+        )
 
     with col3:
-    st.metric(
-        "Avg Distance (km)",
-        f"{avg_optimized_distance:.1f}",
-        f"{-distance_reduction:+.1f} km",
-        delta_color="inverse" if distance_reduction > 0 else "normal"
-    )
+        st.metric(
+            "Avg Distance (km)",
+            f"{avg_optimized_distance:.1f}",
+            f"{-distance_reduction:+.1f} km",
+            delta_color="inverse" if distance_reduction > 0 else "normal"
+        )
 
     with col4:
-    st.metric(
-        "Total Distance Saved",
-        f"{abs(total_distance_saved):.0f} km",
-        f"${fuel_savings:.0f} saved"
-    )
+        st.metric(
+            "Total Distance Saved",
+            f"{abs(total_distance_saved):.0f} km",
+            f"${fuel_savings:.0f} saved"
+        )
 
     with col5:
-    improvement_rate = (filtered_df['Success_prob_improvement'] > 0).sum()
-    improvement_pct = (improvement_rate / len(filtered_df)) * 100
-    st.metric(
-        "Improved Assignments",
-        f"{improvement_rate}",
-        f"{improvement_pct:.1f}%"
-    )
+        improvement_rate = (filtered_df['Success_prob_improvement'] > 0).sum()
+        improvement_pct = (improvement_rate / len(filtered_df)) * 100
+        st.metric(
+            "Improved Assignments",
+            f"{improvement_rate}",
+            f"{improvement_pct:.1f}%"
+        )
 
     st.markdown("---")
 
@@ -1003,36 +1003,36 @@ else:
     col1, col2 = st.columns(2)
 
     with col1:
-    # Fallback level distribution
-    fallback_counts = filtered_df['Fallback_level'].value_counts()
-    
-    fig_fallback = px.pie(
-        values=fallback_counts.values,
-        names=fallback_counts.index,
-        title='Fallback Level Distribution',
-        hole=0.3
-    )
-    
-    st.plotly_chart(fig_fallback, width='stretch')
+        # Fallback level distribution
+        fallback_counts = filtered_df['Fallback_level'].value_counts()
+        
+        fig_fallback = px.pie(
+            values=fallback_counts.values,
+            names=fallback_counts.index,
+            title='Fallback Level Distribution',
+            hole=0.3
+        )
+        
+        st.plotly_chart(fig_fallback, width='stretch')
 
     with col2:
-    # Success probability by fallback level
-    fallback_success = filtered_df.groupby('Fallback_level')['Predicted_success_prob'].agg(['mean', 'count']).reset_index()
-    
-    fig_fallback_success = px.bar(
-        fallback_success,
-        x='Fallback_level',
-        y='mean',
-        title='Average Success Probability by Fallback Level',
-        labels={'mean': 'Avg Success Probability', 'Fallback_level': 'Fallback Level'},
-        text='count',
-        color='mean',
-        color_continuous_scale='RdYlGn'
-    )
-    
-    fig_fallback_success.update_traces(texttemplate='n=%{text}', textposition='outside')
-    
-    st.plotly_chart(fig_fallback_success, width='stretch')
+        # Success probability by fallback level
+        fallback_success = filtered_df.groupby('Fallback_level')['Predicted_success_prob'].agg(['mean', 'count']).reset_index()
+        
+        fig_fallback_success = px.bar(
+            fallback_success,
+            x='Fallback_level',
+            y='mean',
+            title='Average Success Probability by Fallback Level',
+            labels={'mean': 'Avg Success Probability', 'Fallback_level': 'Fallback Level'},
+            text='count',
+            color='mean',
+            color_continuous_scale='RdYlGn'
+        )
+        
+        fig_fallback_success.update_traces(texttemplate='n=%{text}', textposition='outside')
+        
+        st.plotly_chart(fig_fallback_success, width='stretch')
 
     # ============================================================
     # SYSTEM INFORMATION
@@ -1043,37 +1043,37 @@ else:
     col1, col2, col3 = st.columns(3)
 
     with col1:
-    st.markdown("**Assignment Mode:**")
-    # Check if ml_based is in fallback levels
-    if 'ml_based' in df['Fallback_level'].unique():
-        st.success("🤖 ML-Based Assignment")
-        st.write("Evaluates ALL available technicians using ML model")
-    else:
-        st.info("📋 Legacy Cascading Fallback")
+        st.markdown("**Assignment Mode:**")
+        # Check if ml_based is in fallback levels
+        if 'ml_based' in df['Fallback_level'].unique():
+            st.success("🤖 ML-Based Assignment")
+            st.write("Evaluates ALL available technicians using ML model")
+        else:
+            st.info("📋 Legacy Cascading Fallback")
 
     with col2:
-    st.markdown("**Optimization Timestamp:**")
-    if 'Optimization_timestamp' in df.columns:
-        timestamp = df['Optimization_timestamp'].iloc[0]
-        st.write(f"🕐 {timestamp}")
-    else:
-        st.write("N/A")
+        st.markdown("**Optimization Timestamp:**")
+        if 'Optimization_timestamp' in df.columns:
+            timestamp = df['Optimization_timestamp'].iloc[0]
+            st.write(f"🕐 {timestamp}")
+        else:
+            st.write("N/A")
 
     with col3:
-    st.markdown("**Data Summary:**")
-    st.write(f"- Total Dispatches: **{len(df)}**")
-    st.write(f"- Unique Cities: **{df['City'].nunique()}**")
-    st.write(f"- Unique Skills: **{df['Required_skill'].nunique()}**")
+        st.markdown("**Data Summary:**")
+        st.write(f"- Total Dispatches: **{len(df)}**")
+        st.write(f"- Unique Cities: **{df['City'].nunique()}**")
+        st.write(f"- Unique Skills: **{df['Required_skill'].nunique()}**")
 
     # Footer
     st.markdown("---")
     st.markdown(
-    """
-    <div style='text-align: center; color: #7f8c8d; padding: 20px;'>
-        <p>Smart Dispatch Optimization Dashboard v1.0</p>
-        <p>Powered by ML-Based Assignment System | Built with Streamlit</p>
-    </div>
-    """,
-    unsafe_allow_html=True
+        """
+        <div style='text-align: center; color: #7f8c8d; padding: 20px;'>
+            <p>Smart Dispatch Optimization Dashboard v1.0</p>
+            <p>Powered by ML-Based Assignment System | Built with Streamlit</p>
+        </div>
+        """,
+        unsafe_allow_html=True
     )
 
