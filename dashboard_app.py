@@ -223,7 +223,13 @@ st.sidebar.markdown("---")
 col1, col2 = st.sidebar.columns(2)
 
 with col1:
-    if st.button("🚀 Run Optimization", help="Execute optimize_dispatches.py", use_container_width=True):
+    # Check if optimization script and dependencies exist
+    optimization_available = os.path.exists('optimize_dispatches.py')
+    
+    if st.button("🚀 Run Optimization", 
+                 help="Execute optimize_dispatches.py" if optimization_available else "Optimization script not available on Streamlit Cloud", 
+                 disabled=not optimization_available,
+                 use_container_width=True):
         with st.spinner("Running optimization..."):
             try:
                 import subprocess
@@ -242,6 +248,9 @@ with col1:
                 st.error("⏱️ Timeout (> 5 min)")
             except Exception as e:
                 st.error(f"❌ Error: {str(e)}")
+    
+    if not optimization_available:
+        st.sidebar.warning("⚠️ Optimization unavailable")
 
 with col2:
     if st.button("🔄 Refresh", help="Reload data from CSV", use_container_width=True):
@@ -252,18 +261,33 @@ st.sidebar.markdown("---")
 
 # Show optimization settings info
 st.sidebar.header("⚙️ Optimization Info")
-st.sidebar.markdown("""
-**Scoring Weights:**
-- Success Probability: 50%
-- Workload Balance: 35%
-- Travel Distance: 10%
-- Estimated Overrun: 5%
 
-**Data Source:**
-- Script: `optimize_dispatches.py`
-- Output: `optimized_assignments.csv`
-- Input: `current_dispatches.csv`
-""")
+if not os.path.exists('optimize_dispatches.py'):
+    st.sidebar.info("""
+    **ℹ️ How to Run Optimization:**
+    
+    The optimization engine requires local execution due to database dependencies.
+    
+    **Steps:**
+    1. Run locally: `python optimize_dispatches.py`
+    2. Upload `optimized_assignments.csv` to GitHub
+    3. Refresh this dashboard
+    
+    **Or:** Upload pre-generated results directly to your repo.
+    """)
+else:
+    st.sidebar.markdown("""
+    **Scoring Weights:**
+    - Success Probability: 50%
+    - Workload Balance: 35%
+    - Travel Distance: 10%
+    - Estimated Overrun: 5%
+
+    **Data Source:**
+    - Script: `optimize_dispatches.py`
+    - Output: `optimized_assignments.csv`
+    - Input: `current_dispatches.csv`
+    """)
 
 # Load data
 df, error = load_data()
