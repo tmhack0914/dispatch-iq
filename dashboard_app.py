@@ -12,6 +12,14 @@ import numpy as np
 from datetime import datetime
 import os
 
+# Import AI Assistant
+try:
+    from ai_assistant import DispatchAIAssistant
+    AI_AVAILABLE = True
+except ImportError:
+    AI_AVAILABLE = False
+    print("AI Assistant not available. Install ai_assistant.py to enable.")
+
 # Page configuration
 st.set_page_config(
     page_title="F-Ai-ber Force Smart Dispatch",
@@ -59,7 +67,7 @@ st.caption(f"📊 Data Source: `{data_source}` | Last Updated: {datetime.now().s
 # View selector
 view_mode = st.radio(
     "Select View:",
-    ["📊 Dashboard (Analytics)", "📋 Assignments (Manager)", "👷 Technician View"],
+    ["📊 Dashboard (Analytics)", "📋 Assignments (Manager)", "👷 Technician View", "🤖 AI Assistant"],
     horizontal=True,
     key="view_selector"
 )
@@ -303,6 +311,101 @@ with st.sidebar.expander("ℹ️ About Optimization"):
     **Why local-only?**
     Needs database access and large ML model files not suitable for cloud deployment.
     """)
+
+# ============================================================
+# AI ASSISTANT CHAT
+# ============================================================
+st.sidebar.markdown("---")
+st.sidebar.header("🤖 AI Assistant")
+
+if AI_AVAILABLE:
+    # Initialize AI Assistant
+    if 'ai_assistant' not in st.session_state:
+        st.session_state.ai_assistant = DispatchAIAssistant(df)
+    
+    # User role selection
+    user_role = st.sidebar.radio(
+        "I am a:",
+        ["👔 Dispatch Manager", "👷 Technician"],
+        key="user_role"
+    )
+    
+    role = "manager" if "Manager" in user_role else "technician"
+    
+    # Technician ID input for technicians
+    tech_context = {}
+    if role == "technician":
+        tech_id = st.sidebar.text_input(
+            "Your Technician ID:",
+            placeholder="e.g., T900001",
+            key="tech_id_input"
+        )
+        if tech_id:
+            tech_context['technician_id'] = tech_id
+    
+    # Chat interface in expander
+    with st.sidebar.expander("💬 Ask AI Assistant", expanded=False):
+        # Initialize chat history
+        if 'chat_history' not in st.session_state:
+            st.session_state.chat_history = []
+        
+        # Chat input
+        user_query = st.text_area(
+            "Ask me anything:",
+            placeholder="e.g., Show me dispatch #200000016 details",
+            height=100,
+            key="ai_query_input"
+        )
+        
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            if st.button("🚀 Ask", use_container_width=True):
+                if user_query:
+                    # Process query
+                    response = st.session_state.ai_assistant.process_query(
+                        user_query, 
+                        user_role=role,
+                        context=tech_context
+                    )
+                    
+                    # Add to chat history
+                    st.session_state.chat_history.append({
+                        'query': user_query,
+                        'response': response,
+                        'timestamp': datetime.now().strftime('%H:%M:%S')
+                    })
+        
+        with col2:
+            if st.button("🗑️ Clear", use_container_width=True):
+                st.session_state.chat_history = []
+                st.rerun()
+        
+        # Show help button
+        if st.button("❓ Help", use_container_width=True):
+            help_msg = st.session_state.ai_assistant._get_help_message(role)
+            st.session_state.chat_history.append({
+                'query': 'Help',
+                'response': help_msg,
+                'timestamp': datetime.now().strftime('%H:%M:%S')
+            })
+        
+        # Display chat history (most recent first)
+        st.markdown("---")
+        st.markdown("**💬 Chat History:**")
+        
+        if st.session_state.chat_history:
+            for i, chat in enumerate(reversed(st.session_state.chat_history[-5:])):  # Show last 5
+                st.markdown(f"**[{chat['timestamp']}] You:**")
+                st.info(chat['query'])
+                st.markdown(f"**AI Assistant:**")
+                st.success(chat['response'])
+                st.markdown("---")
+        else:
+            st.caption("No chat history yet. Ask me a question!")
+
+else:
+    st.sidebar.warning("AI Assistant not available. Please ensure ai_assistant.py is in the project directory.")
+    st.sidebar.caption("The AI assistant helps answer questions about dispatches, routes, and assignments.")
 
 # Load data
 df, error = load_data()
@@ -910,6 +1013,191 @@ elif view_mode == "👷 Technician View":
             file_name=f"technician_{selected_tech}_route_{datetime.now().strftime('%Y%m%d')}.csv",
             mime="text/csv"
         )
+
+elif view_mode == "🤖 AI Assistant":
+    # ============================================================
+    # AI ASSISTANT VIEW - INTERACTIVE CHAT
+    # ============================================================
+    st.header("🤖 AI Assistant - Smart Dispatch Helper")
+    st.markdown("Ask me anything about dispatches, assignments, routes, and schedules")
+    
+    if not AI_AVAILABLE:
+        st.error("❌ AI Assistant is not available. Please ensure `ai_assistant.py` is in the project directory.")
+        st.info("""
+        **To enable AI Assistant:**
+        1. Ensure `ai_assistant.py` is uploaded to GitHub
+        2. Refresh the dashboard
+        3. AI Assistant will be ready to help!
+        """)
+        st.stop()
+    
+    # Initialize AI Assistant
+    if 'ai_assistant_main' not in st.session_state:
+        st.session_state.ai_assistant_main = DispatchAIAssistant(df)
+    
+    if 'main_chat_history' not in st.session_state:
+        st.session_state.main_chat_history = []
+    
+    # User role and context
+    col1, col2 = st.columns([1, 2])
+    
+    with col1:
+        user_role = st.radio(
+            "I am a:",
+            ["👔 Dispatch Manager", "👷 Technician"],
+            key="main_user_role"
+        )
+        
+        role = "manager" if "Manager" in user_role else "technician"
+    
+    with col2:
+        tech_context = {}
+        if role == "technician":
+            tech_id = st.text_input(
+                "Your Technician ID:",
+                placeholder="e.g., T900001",
+                key="main_tech_id"
+            )
+            if tech_id:
+                tech_context['technician_id'] = tech_id
+                st.success(f"✅ Logged in as {tech_id}")
+    
+    st.markdown("---")
+    
+    # Quick action buttons
+    st.markdown("### 🚀 Quick Actions")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        if st.button("🚨 High Priority", use_container_width=True):
+            response = st.session_state.ai_assistant_main.get_high_priority_dispatches()
+            st.session_state.main_chat_history.append({
+                'query': 'Show high priority dispatches',
+                'response': response,
+                'timestamp': datetime.now().strftime('%H:%M:%S')
+            })
+    
+    with col2:
+        if st.button("⚠️ Unassigned", use_container_width=True):
+            response = st.session_state.ai_assistant_main.get_unassigned_dispatches()
+            st.session_state.main_chat_history.append({
+                'query': 'Show unassigned dispatches',
+                'response': response,
+                'timestamp': datetime.now().strftime('%H:%M:%S')
+            })
+    
+    with col3:
+        if st.button("⚖️ Workload", use_container_width=True):
+            response = st.session_state.ai_assistant_main.get_workload_summary()
+            st.session_state.main_chat_history.append({
+                'query': 'Show workload summary',
+                'response': response,
+                'timestamp': datetime.now().strftime('%H:%M:%S')
+            })
+    
+    with col4:
+        if role == "technician" and tech_context.get('technician_id'):
+            if st.button("📅 My Schedule", use_container_width=True):
+                response = st.session_state.ai_assistant_main.get_technician_schedule(tech_context['technician_id'])
+                st.session_state.main_chat_history.append({
+                    'query': f"Show schedule for {tech_context['technician_id']}",
+                    'response': response,
+                    'timestamp': datetime.now().strftime('%H:%M:%S')
+                })
+        else:
+            if st.button("❓ Help", use_container_width=True):
+                response = st.session_state.ai_assistant_main._get_help_message(role)
+                st.session_state.main_chat_history.append({
+                    'query': 'Help',
+                    'response': response,
+                    'timestamp': datetime.now().strftime('%H:%M:%S')
+                })
+    
+    st.markdown("---")
+    
+    # Main chat interface
+    st.markdown("### 💬 Ask AI Assistant")
+    
+    # Chat input
+    user_query = st.text_area(
+        "Type your question here:",
+        placeholder="Examples:\n- Show me dispatch #200000016 details\n- Route to dispatch #200000016\n- Who else can handle dispatch #200000016?\n- Show workload for all technicians",
+        height=120,
+        key="main_ai_query"
+    )
+    
+    col1, col2, col3 = st.columns([2, 1, 1])
+    
+    with col1:
+        if st.button("🚀 Ask AI", use_container_width=True, type="primary"):
+            if user_query:
+                with st.spinner("🤔 Thinking..."):
+                    response = st.session_state.ai_assistant_main.process_query(
+                        user_query, 
+                        user_role=role,
+                        context=tech_context
+                    )
+                    
+                    st.session_state.main_chat_history.append({
+                        'query': user_query,
+                        'response': response,
+                        'timestamp': datetime.now().strftime('%H:%M:%S')
+                    })
+                    st.rerun()
+    
+    with col2:
+        if st.button("🗑️ Clear History", use_container_width=True):
+            st.session_state.main_chat_history = []
+            st.rerun()
+    
+    with col3:
+        if st.button("❓ Show Help", use_container_width=True):
+            help_msg = st.session_state.ai_assistant_main._get_help_message(role)
+            st.session_state.main_chat_history.append({
+                'query': 'Help - What can you do?',
+                'response': help_msg,
+                'timestamp': datetime.now().strftime('%H:%M:%S')
+            })
+            st.rerun()
+    
+    # Display chat history
+    st.markdown("---")
+    st.markdown("### 📜 Conversation History")
+    
+    if st.session_state.main_chat_history:
+        for i, chat in enumerate(reversed(st.session_state.main_chat_history)):
+            with st.container():
+                col1, col2 = st.columns([1, 12])
+                with col1:
+                    st.markdown(f"**{chat['timestamp']}**")
+                with col2:
+                    st.markdown(f"**You asked:**")
+                    st.info(chat['query'])
+                    st.markdown(f"**AI Assistant:**")
+                    st.markdown(chat['response'])
+                st.markdown("---")
+    else:
+        st.info("👋 No conversation yet! Ask me a question or try a quick action above.")
+        
+        # Show example queries
+        st.markdown("### 💡 Example Questions:")
+        
+        if role == "technician":
+            st.markdown("""
+            - "Show my schedule"
+            - "Tell me about dispatch #200000016"
+            - "Route to dispatch #200000016"
+            - "How many jobs do I have today?"
+            """)
+        else:
+            st.markdown("""
+            - "Show high priority dispatches"
+            - "Who else can handle dispatch #200000016?"
+            - "Show unassigned dispatches"
+            - "Workload summary for all technicians"
+            - "Show schedule for T900001"
+            """)
 
 else:
     # ============================================================
