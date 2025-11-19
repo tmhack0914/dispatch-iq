@@ -903,146 +903,319 @@ else:
         st.stop()
 
     # ============================================================
-    # INITIAL VS OPTIMIZED COMPARISON (HERO SECTION)
+    # OPTIMIZATION RESULTS OVERVIEW (HERO SECTION)
     # ============================================================
-    st.header("📊 Initial vs Optimized Comparison")
+    st.header("📊 Optimization Results Overview")
+    st.caption("*ML-driven optimization with weighted scoring: Success (50%), Workload (35%), Distance (10%), Overrun (5%)*")
 
-    # Create comparison cards
-    col1, col2, col3, col4 = st.columns(4)
+    # Key Performance Indicators - Top Row
+    col1, col2, col3, col4, col5 = st.columns(5)
+
+    # Calculate key metrics
+    total_dispatches = len(filtered_df)
+    assigned_dispatches = filtered_df['Optimized_technician_id'].notna().sum()
+    unassigned_dispatches = total_dispatches - assigned_dispatches
+    assignment_rate = (assigned_dispatches / total_dispatches * 100) if total_dispatches > 0 else 0
+    
+    avg_success_prob = filtered_df['Predicted_success_prob'].mean() if 'Predicted_success_prob' in filtered_df.columns else 0
+    avg_opt_score = filtered_df['Optimization_score'].mean() if 'Optimization_score' in filtered_df.columns else 0
+    avg_distance = filtered_df['Optimized_distance_km'].mean() if 'Optimized_distance_km' in filtered_df.columns else 0
+    
+    # Count warnings
+    has_warnings = filtered_df['Has_warnings'].sum() if 'Has_warnings' in filtered_df.columns else 0
+    warning_rate = (has_warnings / total_dispatches * 100) if total_dispatches > 0 else 0
 
     with col1:
-        st.markdown("### 🎯 Success Probability")
-        initial_success = filtered_df['Initial_success_prob'].mean()
-        optimized_success = filtered_df['Predicted_success_prob'].mean()
-        success_change = optimized_success - initial_success
-        
         st.metric(
-            label="Initial",
-            value=f"{initial_success:.3f}",
-            delta=None
-        )
-        st.metric(
-            label="Optimized",
-            value=f"{optimized_success:.3f}",
-            delta=f"{success_change:+.3f}",
-            delta_color="normal" if success_change >= 0 else "inverse"
+            label="📋 Total Dispatches",
+            value=f"{total_dispatches:,}",
+            help="Total number of dispatches in current selection"
         )
 
     with col2:
-        st.markdown("### 📍 Average Distance")
-        initial_dist = filtered_df['Initial_distance_km'].mean()
-        optimized_dist = filtered_df['Optimized_distance_km'].mean()
-        dist_change = optimized_dist - initial_dist
-        
         st.metric(
-            label="Initial",
-            value=f"{initial_dist:.1f} km",
-            delta=None
-        )
-        st.metric(
-            label="Optimized",
-            value=f"{optimized_dist:.1f} km",
-            delta=f"{dist_change:+.1f} km",
-            delta_color="inverse" if dist_change < 0 else "normal"
+            label="✅ Successfully Assigned",
+            value=f"{assigned_dispatches:,}",
+            delta=f"{assignment_rate:.1f}% rate",
+            delta_color="normal",
+            help="Dispatches successfully matched with technicians"
         )
 
     with col3:
-        st.markdown("### ⚖️ Workload Ratio")
-        initial_workload = filtered_df['Initial_workload_ratio'].mean()
-        optimized_workload = filtered_df['Optimized_workload_ratio'].mean()
-        workload_change = optimized_workload - initial_workload
-        
         st.metric(
-            label="Initial",
-            value=f"{initial_workload:.1%}",
-            delta=None
-        )
-        st.metric(
-            label="Optimized",
-            value=f"{optimized_workload:.1%}",
-            delta=f"{workload_change:+.1%}",
-            delta_color="normal" if abs(workload_change) < 0.05 else "inverse"
+            label="🎯 Avg Success Probability",
+            value=f"{avg_success_prob:.1%}",
+            delta="ML Predicted",
+            delta_color="off",
+            help="Average likelihood of first-time fix success"
         )
 
     with col4:
-        st.markdown("### 💪 Confidence Score")
-        initial_conf = filtered_df['Initial_confidence'].mean()
-        optimized_conf = filtered_df['Optimization_confidence'].mean()
-        conf_change = optimized_conf - initial_conf
-        
         st.metric(
-            label="Initial",
-            value=f"{initial_conf:.3f}",
-            delta=None
-        )
-        st.metric(
-            label="Optimized",
-            value=f"{optimized_conf:.3f}",
-            delta=f"{conf_change:+.3f}",
-            delta_color="normal" if conf_change >= 0 else "inverse"
+            label="⭐ Avg Optimization Score",
+            value=f"{avg_opt_score:.1f}",
+            delta="out of 100",
+            delta_color="off",
+            help="Composite score based on success, workload, distance, and overrun"
         )
 
-    # Summary bar with key improvements
+    with col5:
+        st.metric(
+            label="⚠️ Assignments with Warnings",
+            value=f"{has_warnings}",
+            delta=f"{warning_rate:.1f}%",
+            delta_color="inverse" if warning_rate > 10 else "off",
+            help="Assignments that require attention (overlaps, capacity issues, etc.)"
+        )
+
     st.markdown("---")
+
+    # Detailed Breakdown - Second Row
+    st.subheader("📈 Assignment Quality Breakdown")
+    
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        st.markdown("### 🎯 Success Distribution")
+        high_success = (filtered_df['Predicted_success_prob'] >= 0.7).sum() if 'Predicted_success_prob' in filtered_df.columns else 0
+        medium_success = ((filtered_df['Predicted_success_prob'] >= 0.5) & (filtered_df['Predicted_success_prob'] < 0.7)).sum() if 'Predicted_success_prob' in filtered_df.columns else 0
+        low_success = (filtered_df['Predicted_success_prob'] < 0.5).sum() if 'Predicted_success_prob' in filtered_df.columns else 0
+        
+        st.markdown(f"""
+        - 🟢 **High (≥70%)**: {high_success} ({(high_success/total_dispatches*100):.1f}%)
+        - 🟡 **Medium (50-70%)**: {medium_success} ({(medium_success/total_dispatches*100):.1f}%)
+        - 🔴 **Low (<50%)**: {low_success} ({(low_success/total_dispatches*100):.1f}%)
+        """)
+
+    with col2:
+        st.markdown("### 🎖️ Skill Match Quality")
+        perfect_match = (filtered_df['Skill_match_score'] == 1).sum() if 'Skill_match_score' in filtered_df.columns else 0
+        partial_match = (filtered_df['Skill_match_score'] == 0).sum() if 'Skill_match_score' in filtered_df.columns else 0
+        
+        st.markdown(f"""
+        - ✅ **Perfect Match**: {perfect_match} ({(perfect_match/assigned_dispatches*100 if assigned_dispatches > 0 else 0):.1f}%)
+        - ⚡ **Cross-Trained**: {partial_match} ({(partial_match/assigned_dispatches*100 if assigned_dispatches > 0 else 0):.1f}%)
+        - 📊 **Match Rate**: {(perfect_match/assigned_dispatches*100 if assigned_dispatches > 0 else 0):.1f}%
+        """)
+
+    with col3:
+        st.markdown("### 🚗 Travel Efficiency")
+        total_distance = filtered_df['Optimized_distance_km'].sum() if 'Optimized_distance_km' in filtered_df.columns else 0
+        avg_distance = filtered_df['Optimized_distance_km'].mean() if 'Optimized_distance_km' in filtered_df.columns else 0
+        
+        st.markdown(f"""
+        - 📍 **Total Distance**: {total_distance:.0f} km
+        - 📏 **Avg per Job**: {avg_distance:.1f} km
+        - 💰 **Est. Fuel Cost**: ${(total_distance * 0.50):.0f}
+        """)
+
+    with col4:
+        st.markdown("### ⚖️ Workload Balance")
+        avg_workload = filtered_df['Optimized_workload_ratio'].mean() if 'Optimized_workload_ratio' in filtered_df.columns else 0
+        over_capacity = (filtered_df['Optimized_workload_ratio'] > 1.0).sum() if 'Optimized_workload_ratio' in filtered_df.columns else 0
+        high_load = ((filtered_df['Optimized_workload_ratio'] > 0.8) & (filtered_df['Optimized_workload_ratio'] <= 1.0)).sum() if 'Optimized_workload_ratio' in filtered_df.columns else 0
+        
+        st.markdown(f"""
+        - 📊 **Avg Workload**: {avg_workload:.1%}
+        - 🔴 **Over Capacity**: {over_capacity}
+        - 🟡 **High Load (>80%)**: {high_load}
+        """)
+
+    st.markdown("---")
+
+    # Visual Comparison - Third Row
+    st.subheader("📊 Visual Performance Comparison")
+
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        total_distance_saved = (filtered_df['Initial_distance_km'].sum() - filtered_df['Optimized_distance_km'].sum())
-        st.markdown(f"### 🚗 Distance Saved")
-        st.markdown(f"<h2 style='text-align: center; color: #2ecc71;'>{abs(total_distance_saved):.0f} km</h2>", unsafe_allow_html=True)
-        st.markdown(f"<p style='text-align: center;'>Fuel savings: ${abs(total_distance_saved * 0.50):.0f}</p>", unsafe_allow_html=True)
+        # Success probability gauge
+        avg_success_display = avg_success_prob * 100
+        
+        fig_gauge = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=avg_success_display,
+            domain={'x': [0, 1], 'y': [0, 1]},
+            title={'text': "Success Probability", 'font': {'size': 16}},
+            number={'suffix': '%', 'font': {'size': 40}},
+            gauge={
+                'axis': {'range': [None, 100], 'ticksuffix': '%'},
+                'bar': {'color': "#3498db"},
+                'steps': [
+                    {'range': [0, 50], 'color': "#ffe0b2"},
+                    {'range': [50, 70], 'color': "#fff9c4"},
+                    {'range': [70, 100], 'color': "#d5f4e6"}
+                ],
+                'threshold': {
+                    'line': {'color': "#2ecc71", 'width': 4},
+                    'thickness': 0.75,
+                    'value': 70
+                }
+            }
+        ))
+        
+        fig_gauge.update_layout(
+            height=300,
+            margin=dict(t=40, b=0, l=20, r=20)
+        )
+        
+        st.plotly_chart(fig_gauge, use_container_width=True)
 
     with col2:
-        improved_count = (filtered_df['Success_prob_improvement'] > 0).sum()
-        total_count = len(filtered_df)
-        improvement_pct = (improved_count / total_count * 100) if total_count > 0 else 0
-        st.markdown(f"### 📈 Improved Assignments")
-        st.markdown(f"<h2 style='text-align: center; color: #3498db;'>{improved_count} / {total_count}</h2>", unsafe_allow_html=True)
-        st.markdown(f"<p style='text-align: center;'>{improvement_pct:.1f}% improved</p>", unsafe_allow_html=True)
+        # Optimization score distribution
+        if 'Optimization_score' in filtered_df.columns:
+            fig_score = px.histogram(
+                filtered_df,
+                x='Optimization_score',
+                nbins=25,
+                title='Optimization Score Distribution',
+                labels={'Optimization_score': 'Score', 'count': 'Count'},
+                color_discrete_sequence=['#3498db']
+            )
+            
+            fig_score.add_vline(
+                x=filtered_df['Optimization_score'].mean(),
+                line_dash="dash",
+                line_color="red",
+                annotation_text=f"Avg: {filtered_df['Optimization_score'].mean():.1f}"
+            )
+            
+            fig_score.update_layout(
+                height=300,
+                showlegend=False,
+                margin=dict(t=40, b=40, l=40, r=20)
+            )
+            
+            st.plotly_chart(fig_score, use_container_width=True)
+        else:
+            st.info("Optimization score data not available")
 
     with col3:
-        assigned_count = filtered_df['Optimized_technician_id'].notna().sum()
-        assignment_rate = (assigned_count / len(filtered_df) * 100) if len(filtered_df) > 0 else 0
-        st.markdown(f"### ✅ Assignment Rate")
-        st.markdown(f"<h2 style='text-align: center; color: #9b59b6;'>{assignment_rate:.1f}%</h2>", unsafe_allow_html=True)
-        st.markdown(f"<p style='text-align: center;'>{assigned_count} of {len(filtered_df)} assigned</p>", unsafe_allow_html=True)
+        # Assignment vs unassigned pie
+        fig_pie = go.Figure(data=[go.Pie(
+            labels=['✅ Assigned', '❌ Unassigned'],
+            values=[assigned_dispatches, unassigned_dispatches],
+            hole=.4,
+            marker_colors=['#2ecc71', '#e74c3c']
+        )])
+        
+        fig_pie.update_layout(
+            title='Assignment Status',
+            height=300,
+            showlegend=True,
+            margin=dict(t=40, b=0, l=0, r=0)
+        )
+        
+        st.plotly_chart(fig_pie, use_container_width=True)
+
+    # Second row of charts
+    col1, col2 = st.columns(2)
+
+    with col1:
+        # Success probability by priority
+        if 'Priority' in filtered_df.columns and 'Predicted_success_prob' in filtered_df.columns:
+            priority_success = filtered_df.groupby('Priority')['Predicted_success_prob'].agg(['mean', 'count']).reset_index()
+            
+            fig_priority = px.bar(
+                priority_success,
+                x='Priority',
+                y='mean',
+                title='Success Probability by Priority Level',
+                labels={'mean': 'Avg Success Prob', 'Priority': 'Priority'},
+                text='count',
+                color='mean',
+                color_continuous_scale='RdYlGn',
+                range_color=[0, 1]
+            )
+            
+            fig_priority.update_traces(texttemplate='n=%{text}', textposition='outside')
+            fig_priority.update_layout(height=350, showlegend=False)
+            
+            st.plotly_chart(fig_priority, use_container_width=True)
+        else:
+            st.info("Priority data not available")
+
+    with col2:
+        # Distance vs success scatter
+        if 'Optimized_distance_km' in filtered_df.columns and 'Predicted_success_prob' in filtered_df.columns:
+            fig_scatter = px.scatter(
+                filtered_df.head(200),  # Limit to 200 points for performance
+                x='Optimized_distance_km',
+                y='Predicted_success_prob',
+                title='Success Probability vs Distance (first 200)',
+                labels={'Optimized_distance_km': 'Distance (km)', 'Predicted_success_prob': 'Success Prob'},
+                color='Predicted_success_prob',
+                color_continuous_scale='RdYlGn',
+                opacity=0.6
+            )
+            
+            fig_scatter.update_layout(height=350)
+            st.plotly_chart(fig_scatter, use_container_width=True)
+        else:
+            st.info("Distance/Success data not available")
 
     st.markdown("---")
 
-    # Visual Comparison Chart
-    st.subheader("📊 Visual Performance Comparison")
+    # Key Insights & Recommendations
+    st.subheader("💡 Key Insights & Recommendations")
+    
+    col1, col2, col3 = st.columns(3)
 
-    comparison_data = pd.DataFrame({
-        'Metric': ['Success Probability', 'Success Probability', 'Avg Distance (km)', 'Avg Distance (km)', 
-                   'Workload Ratio', 'Workload Ratio', 'Confidence', 'Confidence'],
-        'Type': ['Initial', 'Optimized', 'Initial', 'Optimized', 'Initial', 'Optimized', 'Initial', 'Optimized'],
-        'Value': [
-            initial_success, optimized_success,
-            initial_dist, optimized_dist,
-            initial_workload, optimized_workload,
-            initial_conf, optimized_conf
-        ]
-    })
+    with col1:
+        st.markdown("#### ✅ Strengths")
+        insights = []
+        if assignment_rate > 90:
+            insights.append("🌟 Excellent assignment rate (>90%)")
+        if avg_success_prob > 0.7:
+            insights.append("🎯 High success probability average")
+        if warning_rate < 5:
+            insights.append("✅ Very few warnings (<5%)")
+        if 'Skill_match_score' in filtered_df.columns:
+            perfect_match_rate = (filtered_df['Skill_match_score'] == 1).sum() / assigned_dispatches * 100 if assigned_dispatches > 0 else 0
+            if perfect_match_rate > 80:
+                insights.append("🎖️ Strong skill matching (>80%)")
+        
+        if insights:
+            for insight in insights:
+                st.markdown(f"- {insight}")
+        else:
+            st.markdown("- 📊 System operating normally")
 
-    fig_comparison = px.bar(
-        comparison_data,
-        x='Metric',
-        y='Value',
-        color='Type',
-        barmode='group',
-        title='Initial vs Optimized Performance Metrics',
-        color_discrete_map={'Initial': '#e74c3c', 'Optimized': '#2ecc71'},
-        height=400
-    )
+    with col2:
+        st.markdown("#### ⚠️ Areas of Concern")
+        concerns = []
+        if unassigned_dispatches > total_dispatches * 0.1:
+            concerns.append(f"🔴 {unassigned_dispatches} dispatches unassigned")
+        if warning_rate > 10:
+            concerns.append(f"⚠️ High warning rate ({warning_rate:.1f}%)")
+        if low_success > total_dispatches * 0.15:
+            concerns.append(f"📉 {low_success} low-confidence assignments")
+        if over_capacity > 0:
+            concerns.append(f"🔴 {over_capacity} technicians over capacity")
+        
+        if concerns:
+            for concern in concerns:
+                st.markdown(f"- {concern}")
+        else:
+            st.markdown("- ✅ No major concerns identified")
 
-    fig_comparison.update_layout(
-        xaxis_title='',
-        yaxis_title='Value',
-        legend_title='',
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-    )
-
-    st.plotly_chart(fig_comparison, width='stretch')
+    with col3:
+        st.markdown("#### 🎯 Recommendations")
+        recommendations = []
+        if unassigned_dispatches > 0:
+            recommendations.append(f"📞 Address {unassigned_dispatches} unassigned jobs")
+        if low_success > 5:
+            recommendations.append(f"📚 {low_success} jobs may need specialist training")
+        if avg_distance > 30:
+            recommendations.append("🗺️ Review territory assignments")
+        if over_capacity > 0:
+            recommendations.append("⚖️ Rebalance workload distribution")
+        
+        if recommendations:
+            for rec in recommendations[:3]:  # Show top 3
+                st.markdown(f"- {rec}")
+        else:
+            st.markdown("- ✅ System is well-optimized")
 
     st.markdown("---")
 
