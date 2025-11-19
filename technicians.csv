@@ -1,0 +1,151 @@
+"Technician_id","Name","Primary_skill","City","County","State","Latitude","Longitude","Workload_capacity","Current_assignments","Skill_category"
+T900020,David Rodriguez,Line repair,Los Angeles,LOS ANGELES,CA,33.99326,-118.48221,4,0,Critical Trouble Resolution
+T900088,Joseph Rodriguez,Equipment check,Philadelphia,PHILADELPHIA,PA,39.724293,-75.14294,8,0,Low Priority Support
+T900050,Joseph Johnson,Line repair,Houston,HOUSTON,TX,29.732437,-95.39653,7,0,Critical Trouble Resolution
+T900033,William Rodriguez,Equipment check,Chicago,CHICAGO,IL,41.6497,-87.52119,6,0,Low Priority Support
+T900042,Linda Gonzalez,Equipment check,Chicago,CHICAGO,IL,42.145653,-87.37423,8,0,Low Priority Support
+T900143,William Smith,Equipment check,Austin,AUSTIN,TX,30.387053,-97.50449,7,0,Low Priority Support
+T900065,Jennifer Johnson,Equipment check,Phoenix,PHOENIX,AZ,33.196587,-111.829216,6,0,Low Priority Support
+T900048,John Davis,Cable maintenance,Houston,HOUSTON,TX,29.918,-95.37644,5,0,Low Priority Support
+T900062,Linda Gonzalez,Line repair,Phoenix,PHOENIX,AZ,33.31987,-112.1089,7,0,Critical Trouble Resolution
+T900068,James Jones,Line repair,Phoenix,PHOENIX,AZ,33.26361,-111.91705,4,0,Critical Trouble Resolution
+T900023,Michael Davis,Network troubleshooting,Los Angeles,LOS ANGELES,CA,34.128056,-118.40233,8,0,Critical Trouble Resolution
+T900031,Patricia Smith,Network troubleshooting,Chicago,CHICAGO,IL,41.80425,-87.64955,8,0,Critical Trouble Resolution
+T900014,James Brown,Network troubleshooting,New York,NEW YORK,NY,40.50271,-73.8078,8,0,Critical Trouble Resolution
+T900072,Jessica Lopez,Network troubleshooting,Phoenix,PHOENIX,AZ,33.486065,-111.98298,7,0,Critical Trouble Resolution
+T900082,Robert Hernandez,Network troubleshooting,Philadelphia,PHILADELPHIA,PA,39.8353,-75.39183,8,0,Critical Trouble Resolution
+T900089,Joseph Davis,Network troubleshooting,Philadelphia,PHILADELPHIA,PA,40.132717,-75.316505,7,0,Critical Trouble Resolution
+T900002,Barbara Williams,Service restoration,New York,NEW YORK,NY,40.749676,-73.757484,5,0,Critical Trouble Resolution
+T900007,David Jones,Service restoration,New York,NEW YORK,NY,40.624477,-74.05378,7,0,Critical Trouble Resolution
+T900103,Elizabeth Gonzalez,Line repair,San Antonio,SAN ANTONIO,TX,29.489414,-98.33524,7,0,Critical Trouble Resolution
+T900010,Elizabeth Brown,Copper ONT installation,New York,NEW YORK,NY,40.801727,-73.81623,8,0,Installation Services
+T900104,Richard Williams,Cable maintenance,San Antonio,SAN ANTONIO,TX,29.591309,-98.31109,4,0,Low Priority Support
+T900077,Patricia Wilson,Line repair,Philadelphia,PHILADELPHIA,PA,39.735252,-74.901436,8,0,Critical Trouble Resolution
+T900035,David Smith,Service restoration,Chicago,CHICAGO,IL,42.0176,-87.44384,4,0,Critical Trouble Resolution
+T900039,Joseph Williams,Service restoration,Chicago,CHICAGO,IL,41.775093,-87.47291,8,0,Critical Trouble Resolution
+T900063,Elizabeth Williams,Service restoration,Phoenix,PHOENIX,AZ,33.58715,-111.989624,7,0,Critical Trouble Resolution
+T900084,John Martinez,Service restoration,Philadelphia,PHILADELPHIA,PA,39.701187,-75.22564,7,0,Critical Trouble Resolution
+T900045,Elizabeth Brown,Service restoration,Houston,HOUSTON,TX,29.92954,-95.38439,7,0,Critical Trouble Resolution
+T900131,Mary Williams,Service restoration,Dallas,DALLAS,TX,32.607494,-96.75532,6,0,Critical Trouble Resolution
+T900147,David Lopez,Service restoration,Austin,AUSTIN,TX,30.354408,-97.91836,7,0,Critical Trouble Resolution
+T900027,Elizabeth Martinez,Service restoration,Los Angeles,LOS ANGELES,CA,34.27614,-118.08416,6,0,Critical Trouble Resolution
+T900122,Robert Anderson,Service restoration,Dallas,DALLAS,TX,33.021664,-96.704025,6,0,Critical Trouble Resolution
+T900136,Jennifer Wilson,Service restoration,Austin,AUSTIN,TX,30.281242,-97.9723,6,0,Critical Trouble Resolution
+T900098,William Miller,Service restoration,San Antonio,SAN ANTONIO,TX,29.162718,-98.66931,5,0,Critical Trouble Resolution
+T900115,David Miller,Service restoration,San Diego,SAN DIEGO,CA,32.882046,-117.13856,4,0,Critical Trouble Resolution
+T900102,John Hernandez,Service restoration,San Antonio,SAN ANTONIO,TX,29.284212,-98.75227,7,0,Critical Trouble Resolution
+T900119,Richard Rodriguez,Service restoration,San Diego,SAN DIEGO,CA,32.68069,-117.38012,8,0,Critical Trouble Resolution
+T900044,William Hernandez,Service migration,Chicago,CHICAGO,IL,41.71958,-87.43551,6,0,Upgrade Services
+T900053,David Lopez,Service migration,Houston,HOUSTON,TX,29.557936,-95.102135,7,0,Upgrade Services
+T900054,John Jones,Service migration,Houston,HOUSTON,TX,29.797485,-95.615944,8,0,Upgrade Services
+T900130,John Miller,Service migration,Dallas,DALLAS,TX,33.038662,-96.99559,8,0,Upgrade Services
+T900145,John Smith,Service migration,Austin,AUSTIN,TX,30.042875,-97.82843,6,0,Upgrade Services
+T900112,Robert Brown,Service migration,San Diego,SAN DIEGO,CA,32.59931,-117.18421,4,0,Upgrade Services
+T900013,Linda Rodriguez,Connectivity diagnosis,New York,NEW YORK,NY,40.652683,-73.89288,5,0,Critical Trouble Resolution
+T900022,Michael Davis,Connectivity diagnosis,Los Angeles,LOS ANGELES,CA,33.805794,-118.38022,6,0,Critical Trouble Resolution
+T900025,Patricia Rodriguez,Connectivity diagnosis,Los Angeles,LOS ANGELES,CA,33.957344,-118.01123,8,0,Critical Trouble Resolution
+T900038,Linda Martinez,Connectivity diagnosis,Chicago,CHICAGO,IL,41.994823,-87.87963,8,0,Critical Trouble Resolution
+T900052,Susan Garcia,Connectivity diagnosis,Houston,HOUSTON,TX,29.813133,-95.633095,4,0,Critical Trouble Resolution
+T900059,Richard Gonzalez,Connectivity diagnosis,Houston,HOUSTON,TX,29.897419,-95.389275,4,0,Critical Trouble Resolution
+T900037,Jessica Williams,Connectivity diagnosis,Chicago,CHICAGO,IL,41.687553,-87.681015,8,0,Critical Trouble Resolution
+T900128,Barbara Lopez,Connectivity diagnosis,Dallas,DALLAS,TX,33.010548,-96.70858,5,0,Critical Trouble Resolution
+T900071,Linda Miller,Connectivity diagnosis,Phoenix,PHOENIX,AZ,33.31002,-111.89624,4,0,Critical Trouble Resolution
+T900073,Patricia Jones,Connectivity diagnosis,Phoenix,PHOENIX,AZ,33.606583,-111.925316,4,0,Critical Trouble Resolution
+T900083,Richard Rodriguez,Connectivity diagnosis,Philadelphia,PHILADELPHIA,PA,39.792152,-74.99022,6,0,Critical Trouble Resolution
+T900137,Patricia Garcia,Connectivity diagnosis,Austin,AUSTIN,TX,30.380198,-97.74227,7,0,Critical Trouble Resolution
+T900105,David Miller,Connectivity diagnosis,San Diego,SAN DIEGO,CA,32.933292,-117.17526,4,0,Critical Trouble Resolution
+T900139,Elizabeth Miller,Connectivity diagnosis,Austin,AUSTIN,TX,30.170216,-97.76503,5,0,Critical Trouble Resolution
+T900081,Joseph Hernandez,Connectivity diagnosis,Philadelphia,PHILADELPHIA,PA,39.93834,-75.148895,6,0,Critical Trouble Resolution
+T900090,Richard Brown,Connectivity diagnosis,San Antonio,SAN ANTONIO,TX,29.15805,-98.5984,7,0,Critical Trouble Resolution
+T900099,Richard Smith,Connectivity diagnosis,San Antonio,SAN ANTONIO,TX,29.484474,-98.356445,7,0,Critical Trouble Resolution
+T900109,Joseph Martinez,Connectivity diagnosis,San Diego,SAN DIEGO,CA,32.51285,-117.27776,8,0,Critical Trouble Resolution
+T900124,John Hernandez,Connectivity diagnosis,Dallas,DALLAS,TX,32.685726,-96.97526,5,0,Critical Trouble Resolution
+T900095,Patricia Rodriguez,Bandwidth upgrade,San Antonio,SAN ANTONIO,TX,29.674686,-98.463974,7,0,Upgrade Services
+T900101,David Gonzalez,Network support,San Antonio,SAN ANTONIO,TX,29.298458,-98.2266,5,0,Low Priority Support
+T900149,Barbara Johnson,Network support,Austin,AUSTIN,TX,30.475103,-98.00161,5,0,Low Priority Support
+T900015,Robert Brown,Copper ONT installation,Los Angeles,LOS ANGELES,CA,33.833138,-118.1781,6,0,Installation Services
+T900043,Barbara Lopez,Copper ONT installation,Chicago,CHICAGO,IL,42.0026,-87.75104,6,0,Installation Services
+T900070,Elizabeth Miller,Copper ONT installation,Phoenix,PHOENIX,AZ,33.5516,-112.04464,7,0,Installation Services
+T900146,John Davis,Copper ONT installation,Austin,AUSTIN,TX,30.22736,-97.4881,7,0,Installation Services
+T900005,David Gonzalez,Copper ONT installation,New York,NEW YORK,NY,40.503567,-73.86671,4,0,Installation Services
+T900001,Joseph Jones,Connectivity diagnosis,New York,NEW YORK,NY,40.842747,-74.173965,8,0,Critical Trouble Resolution
+T900060,Michael Williams,Network support,Phoenix,PHOENIX,AZ,33.49189,-112.250786,8,0,Low Priority Support
+T900006,John Johnson,Cable maintenance,New York,NEW YORK,NY,40.93104,-73.911156,8,0,Low Priority Support
+T900085,Mary Miller,Cable maintenance,Philadelphia,PHILADELPHIA,PA,39.71224,-75.00213,6,0,Low Priority Support
+T900021,Michael Smith,Line repair,Los Angeles,LOS ANGELES,CA,34.023808,-118.443924,5,0,Critical Trouble Resolution
+T900008,Susan Smith,Line repair,New York,NEW YORK,NY,40.95148,-74.242226,6,0,Critical Trouble Resolution
+T900009,Elizabeth Brown,Line repair,New York,NEW YORK,NY,40.70779,-74.053665,5,0,Critical Trouble Resolution
+T900032,Mary Gonzalez,Line repair,Chicago,CHICAGO,IL,42.083984,-87.795334,4,0,Critical Trouble Resolution
+T900036,John Martinez,Line repair,Chicago,CHICAGO,IL,41.775635,-87.692635,5,0,Critical Trouble Resolution
+T900051,Patricia Lopez,Line repair,Houston,HOUSTON,TX,29.581623,-95.29202,4,0,Critical Trouble Resolution
+T900076,Barbara Rodriguez,Line repair,Philadelphia,PHILADELPHIA,PA,39.725224,-75.01327,7,0,Critical Trouble Resolution
+T900016,James Brown,Network troubleshooting,Los Angeles,LOS ANGELES,CA,34.10804,-118.404724,5,0,Critical Trouble Resolution
+T900012,Jessica Davis,Network troubleshooting,New York,NEW YORK,NY,40.690792,-74.219055,7,0,Critical Trouble Resolution
+T900034,Richard Johnson,Network troubleshooting,Chicago,CHICAGO,IL,41.822174,-87.69079,6,0,Critical Trouble Resolution
+T900047,Michael Rodriguez,Network troubleshooting,Houston,HOUSTON,TX,29.96445,-95.32513,5,0,Critical Trouble Resolution
+T900056,Michael Rodriguez,Network troubleshooting,Houston,HOUSTON,TX,29.639774,-95.27433,6,0,Critical Trouble Resolution
+T900074,Robert Garcia,Network troubleshooting,Phoenix,PHOENIX,AZ,33.34883,-111.83378,4,0,Critical Trouble Resolution
+T900026,David Jones,Service restoration,Los Angeles,LOS ANGELES,CA,33.90412,-118.25367,7,0,Critical Trouble Resolution
+T900057,Jessica Garcia,Service restoration,Houston,HOUSTON,TX,30.013802,-95.29589,4,0,Critical Trouble Resolution
+T900064,Patricia Brown,Service restoration,Phoenix,PHOENIX,AZ,33.45172,-112.32081,8,0,Critical Trouble Resolution
+T900075,Jessica Davis,Service restoration,Philadelphia,PHILADELPHIA,PA,39.88018,-75.26884,4,0,Critical Trouble Resolution
+T900067,Patricia Garcia,Service migration,Phoenix,PHOENIX,AZ,33.636456,-111.80894,4,0,Upgrade Services
+T900111,Jessica Anderson,Cable maintenance,San Diego,SAN DIEGO,CA,32.650505,-117.15377,6,0,Low Priority Support
+T900118,Richard Martinez,Equipment check,San Diego,SAN DIEGO,CA,32.75522,-117.18351,7,0,Low Priority Support
+T900123,James Jones,Equipment check,Dallas,DALLAS,TX,32.90176,-96.79283,6,0,Low Priority Support
+T900092,Robert Wilson,Line repair,San Antonio,SAN ANTONIO,TX,29.501554,-98.5597,6,0,Critical Trouble Resolution
+T900110,Jessica Rodriguez,Line repair,San Diego,SAN DIEGO,CA,32.702183,-116.95874,7,0,Critical Trouble Resolution
+T900134,David Wilson,Line repair,Dallas,DALLAS,TX,32.852154,-96.54625,6,0,Critical Trouble Resolution
+T900127,Joseph Rodriguez,Line repair,Dallas,DALLAS,TX,32.704994,-97.01135,5,0,Critical Trouble Resolution
+T900142,Elizabeth Wilson,Line repair,Austin,AUSTIN,TX,30.373714,-97.48448,5,0,Critical Trouble Resolution
+T900144,Patricia Martinez,Line repair,Austin,AUSTIN,TX,30.145428,-97.840126,8,0,Critical Trouble Resolution
+T900108,Barbara Hernandez,Line repair,San Diego,SAN DIEGO,CA,32.7607,-117.0683,8,0,Critical Trouble Resolution
+T900096,Elizabeth Garcia,Network troubleshooting,San Antonio,SAN ANTONIO,TX,29.161276,-98.517006,8,0,Critical Trouble Resolution
+T900116,Linda Williams,Network troubleshooting,San Diego,SAN DIEGO,CA,32.586994,-117.39822,4,0,Critical Trouble Resolution
+T900133,Elizabeth Smith,Network troubleshooting,Dallas,DALLAS,TX,32.640396,-96.53126,7,0,Critical Trouble Resolution
+T900141,Jessica Davis,Network troubleshooting,Austin,AUSTIN,TX,30.009026,-97.57231,4,0,Critical Trouble Resolution
+T900135,David Lopez,Network troubleshooting,Austin,AUSTIN,TX,30.051205,-97.935234,6,0,Critical Trouble Resolution
+T900097,Linda Brown,Network troubleshooting,San Antonio,SAN ANTONIO,TX,29.288633,-98.53573,5,0,Critical Trouble Resolution
+T900107,Linda Rodriguez,Network troubleshooting,San Diego,SAN DIEGO,CA,32.860756,-117.39789,8,0,Critical Trouble Resolution
+T900121,Elizabeth Rodriguez,Network troubleshooting,Dallas,DALLAS,TX,32.75209,-96.93104,4,0,Critical Trouble Resolution
+T900024,Linda Wilson,Copper ONT installation,Los Angeles,LOS ANGELES,CA,34.224297,-118.23842,8,0,Installation Services
+T900041,Elizabeth Hernandez,Copper ONT installation,Chicago,CHICAGO,IL,41.726143,-87.794266,4,0,Installation Services
+T900058,Susan Gonzalez,Copper ONT installation,Houston,HOUSTON,TX,29.936464,-95.49161,4,0,Installation Services
+T900049,William Williams,Copper ONT installation,Houston,HOUSTON,TX,29.529257,-95.28409,7,0,Installation Services
+T900069,Jennifer Miller,Copper ONT installation,Phoenix,PHOENIX,AZ,33.717445,-112.147415,6,0,Installation Services
+T900087,Barbara Garcia,Copper ONT installation,Philadelphia,PHILADELPHIA,PA,40.09442,-75.10045,6,0,Installation Services
+T900079,Linda Gonzalez,Copper ONT installation,Philadelphia,PHILADELPHIA,PA,40.083412,-75.41279,6,0,Installation Services
+T900093,Richard Anderson,Copper ONT installation,San Antonio,SAN ANTONIO,TX,29.4785,-98.405205,6,0,Installation Services
+T900113,Linda Garcia,Copper ONT installation,San Diego,SAN DIEGO,CA,32.61752,-116.94428,5,0,Installation Services
+T900132,Jessica Miller,Copper ONT installation,Dallas,DALLAS,TX,32.837433,-96.59331,7,0,Installation Services
+T900138,Joseph Garcia,Copper ONT installation,Austin,AUSTIN,TX,30.081575,-97.71863,6,0,Installation Services
+T900040,David Anderson,Fiber ONT installation,Chicago,CHICAGO,IL,41.80186,-87.84007,8,0,Installation Services
+T900046,Elizabeth Rodriguez,Fiber ONT installation,Houston,HOUSTON,TX,29.667393,-95.242424,5,0,Installation Services
+T900129,Richard Wilson,Fiber ONT installation,Dallas,DALLAS,TX,32.78268,-96.54422,7,0,Installation Services
+T900055,Mary Rodriguez,Fiber ONT installation,Houston,HOUSTON,TX,29.702843,-95.17724,5,0,Installation Services
+T900078,Michael Williams,Fiber ONT installation,Philadelphia,PHILADELPHIA,PA,39.694252,-74.92996,4,0,Installation Services
+T900011,Barbara Lopez,Fiber ONT installation,New York,NEW YORK,NY,40.498646,-73.85242,8,0,Installation Services
+T900029,Michael Hernandez,Fiber ONT installation,Los Angeles,LOS ANGELES,CA,34.294132,-118.27317,4,0,Installation Services
+T900030,Jessica Garcia,Fiber ONT installation,Chicago,CHICAGO,IL,41.794716,-87.78465,4,0,Installation Services
+T900061,Jennifer Martinez,Fiber ONT installation,Phoenix,PHOENIX,AZ,33.41215,-112.11576,5,0,Installation Services
+T900066,Linda Jones,Fiber ONT installation,Phoenix,PHOENIX,AZ,33.448772,-111.838234,4,0,Installation Services
+T900080,William Davis,Fiber ONT installation,Philadelphia,PHILADELPHIA,PA,39.87478,-74.93637,7,0,Installation Services
+T900094,James Rodriguez,Fiber ONT installation,San Antonio,SAN ANTONIO,TX,29.561066,-98.42973,6,0,Installation Services
+T900100,Susan Garcia,Fiber ONT installation,San Antonio,SAN ANTONIO,TX,29.580553,-98.249,5,0,Installation Services
+T900114,Michael Davis,Fiber ONT installation,San Diego,SAN DIEGO,CA,32.938217,-116.94125,6,0,Installation Services
+T900126,Linda Rodriguez,Fiber ONT installation,Dallas,DALLAS,TX,32.82372,-96.97583,5,0,Installation Services
+T900148,William Jones,Fiber ONT installation,Austin,AUSTIN,TX,30.273836,-97.79255,5,0,Installation Services
+T900140,Michael Brown,Fiber ONT installation,Austin,AUSTIN,TX,30.056616,-97.51467,6,0,Installation Services
+T900106,Barbara Rodriguez,Fiber ONT installation,San Diego,SAN DIEGO,CA,32.83609,-117.045,6,0,Installation Services
+T900028,David Jones,Equipment upgrade,Los Angeles,LOS ANGELES,CA,33.977123,-118.4836,6,0,Upgrade Services
+T900003,Joseph Jones,Equipment upgrade,New York,NEW YORK,NY,40.551098,-74.12121,8,0,Upgrade Services
+T900018,John Davis,Equipment upgrade,Los Angeles,LOS ANGELES,CA,33.85856,-118.38942,5,0,Upgrade Services
+T900004,Richard Smith,Equipment upgrade,New York,NEW YORK,NY,40.86306,-73.912605,7,0,Upgrade Services
+T900019,David Johnson,Equipment upgrade,Los Angeles,LOS ANGELES,CA,34.19092,-118.09415,8,0,Upgrade Services
+T900086,Linda Garcia,Equipment upgrade,Philadelphia,PHILADELPHIA,PA,39.76783,-75.29569,7,0,Upgrade Services
+T900125,David Wilson,Equipment upgrade,Dallas,DALLAS,TX,32.56436,-96.96006,7,0,Upgrade Services
+T900091,Jessica Davis,Copper ONT installation,San Antonio,SAN ANTONIO,TX,29.368528,-98.360214,6,0,Installation Services
+T900120,James Rodriguez,Copper ONT installation,Dallas,DALLAS,TX,32.531204,-96.55108,4,0,Installation Services
+T900117,Jessica Jones,Copper ONT installation,San Diego,SAN DIEGO,CA,32.46732,-117.21022,7,0,Installation Services
+T900017,Patricia Martinez,Fiber ONT installation,Los Angeles,LOS ANGELES,CA,34.300987,-118.31633,4,0,Installation Services
+T900000,Michael Martinez,Fiber ONT installation,New York,NEW YORK,NY,40.69107,-74.17802,4,0,Installation Services
