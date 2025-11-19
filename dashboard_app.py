@@ -1,6 +1,6 @@
 """
-F-Ai-ber Force Smart Dispatch Dashboard
-Interactive web application to visualize dispatch optimization results
+Dispatch-IQ: Smart Dispatch Dashboard
+AI-powered interactive web application for dispatch optimization and technician assignment
 """
 
 import streamlit as st
@@ -22,8 +22,8 @@ except ImportError:
 
 # Page configuration
 st.set_page_config(
-    page_title="F-Ai-ber Force Smart Dispatch",
-    page_icon="🚚",
+    page_title="Dispatch-IQ",
+    page_icon="🧠",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -57,8 +57,8 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # Title and header
-st.title("🚚 F-Ai-ber Force Smart Dispatch Dashboard")
-st.markdown("### ML-Based Technician Assignment System")
+st.title("🧠 Dispatch-IQ: Smart Dispatch Dashboard")
+st.markdown("### AI-Powered Technician Assignment & Optimization")
 
 # Data source indicator
 data_source = "optimized_assignments.csv" if os.path.exists('optimized_assignments.csv') else "optimized_dispatch_results.csv"
@@ -2074,7 +2074,7 @@ else:
         st.markdown(
             """
             <div style='text-align: center; color: #7f8c8d; padding: 20px;'>
-                <p>F-Ai-ber Force Smart Dispatch Dashboard v1.0</p>
+                <p>Dispatch-IQ: Smart Dispatch Dashboard v1.0</p>
                 <p>Powered by ML-Based Assignment System | Built with Streamlit</p>
             </div>
             """,
