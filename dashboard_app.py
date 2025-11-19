@@ -656,93 +656,93 @@ else:
 
     # TAB 1: Overview Comparisons
     with tab1:
-    st.subheader("Initial vs Optimized Comparison")
-    
-    # Create comparison metrics
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        # Success Probability Comparison
-        fig_success = go.Figure()
+        st.subheader("Initial vs Optimized Comparison")
         
-        fig_success.add_trace(go.Box(
-            y=filtered_df['Initial_success_prob'],
-            name='Initial',
-            marker_color='lightblue',
-            boxmean='sd'
-        ))
+        # Create comparison metrics
+        col1, col2 = st.columns(2)
         
-        fig_success.add_trace(go.Box(
-            y=filtered_df['Predicted_success_prob'],
-            name='Optimized',
-            marker_color='lightgreen',
-            boxmean='sd'
-        ))
+        with col1:
+            # Success Probability Comparison
+            fig_success = go.Figure()
+            
+            fig_success.add_trace(go.Box(
+                y=filtered_df['Initial_success_prob'],
+                name='Initial',
+                marker_color='lightblue',
+                boxmean='sd'
+            ))
+            
+            fig_success.add_trace(go.Box(
+                y=filtered_df['Predicted_success_prob'],
+                name='Optimized',
+                marker_color='lightgreen',
+                boxmean='sd'
+            ))
+            
+            fig_success.update_layout(
+                title='Success Probability Distribution',
+                yaxis_title='Success Probability',
+                showlegend=True,
+                height=400
+            )
+            
+            st.plotly_chart(fig_success, width='stretch')
         
-        fig_success.update_layout(
-            title='Success Probability Distribution',
-            yaxis_title='Success Probability',
-            showlegend=True,
+        with col2:
+            # Distance Comparison
+            fig_distance = go.Figure()
+            
+            fig_distance.add_trace(go.Box(
+                y=filtered_df['Initial_distance_km'],
+                name='Initial',
+                marker_color='salmon',
+                boxmean='sd'
+            ))
+            
+            fig_distance.add_trace(go.Box(
+                y=filtered_df['Optimized_distance_km'],
+                name='Optimized',
+                marker_color='lightcoral',
+                boxmean='sd'
+            ))
+            
+            fig_distance.update_layout(
+                title='Distance Distribution (km)',
+                yaxis_title='Distance (km)',
+                showlegend=True,
+                height=400
+            )
+            
+            st.plotly_chart(fig_distance, width='stretch')
+        
+        # Improvement breakdown
+        st.subheader("Improvement Breakdown")
+        
+        improved = (filtered_df['Success_prob_improvement'] > 0).sum()
+        worse = (filtered_df['Success_prob_improvement'] < 0).sum()
+        unchanged = (filtered_df['Success_prob_improvement'] == 0).sum()
+        
+        fig_pie = go.Figure(data=[go.Pie(
+            labels=['Improved', 'Worse', 'Unchanged'],
+            values=[improved, worse, unchanged],
+            hole=.3,
+            marker_colors=['#2ecc71', '#e74c3c', '#95a5a6']
+        )])
+        
+        fig_pie.update_layout(
+            title='Assignment Outcome Distribution',
             height=400
         )
         
-        st.plotly_chart(fig_success, width='stretch')
-    
-    with col2:
-        # Distance Comparison
-        fig_distance = go.Figure()
-        
-        fig_distance.add_trace(go.Box(
-            y=filtered_df['Initial_distance_km'],
-            name='Initial',
-            marker_color='salmon',
-            boxmean='sd'
-        ))
-        
-        fig_distance.add_trace(go.Box(
-            y=filtered_df['Optimized_distance_km'],
-            name='Optimized',
-            marker_color='lightcoral',
-            boxmean='sd'
-        ))
-        
-        fig_distance.update_layout(
-            title='Distance Distribution (km)',
-            yaxis_title='Distance (km)',
-            showlegend=True,
-            height=400
-        )
-        
-        st.plotly_chart(fig_distance, width='stretch')
-    
-    # Improvement breakdown
-    st.subheader("Improvement Breakdown")
-    
-    improved = (filtered_df['Success_prob_improvement'] > 0).sum()
-    worse = (filtered_df['Success_prob_improvement'] < 0).sum()
-    unchanged = (filtered_df['Success_prob_improvement'] == 0).sum()
-    
-    fig_pie = go.Figure(data=[go.Pie(
-        labels=['Improved', 'Worse', 'Unchanged'],
-        values=[improved, worse, unchanged],
-        hole=.3,
-        marker_colors=['#2ecc71', '#e74c3c', '#95a5a6']
-    )])
-    
-    fig_pie.update_layout(
-        title='Assignment Outcome Distribution',
-        height=400
-    )
-    
-    st.plotly_chart(fig_pie, width='stretch')
+        st.plotly_chart(fig_pie, width='stretch')
 
-    # TAB 2: Success Probability Analysis
+        # TAB 2: Success Probability Analysis
     with tab2:
-    st.subheader("Success Probability Deep Dive")
+        st.subheader("Success Probability Deep Dive")
     
-    col1, col2 = st.columns(2)
+        col1, col2 = st.columns(2)
     
-    with col1:
+        with col1:
         # Histogram of success probability improvement
         fig_hist = px.histogram(
             filtered_df,
@@ -755,7 +755,7 @@ else:
         fig_hist.add_vline(x=0, line_dash="dash", line_color="red")
         st.plotly_chart(fig_hist, width='stretch')
     
-    with col2:
+        with col2:
         # Success probability by skill
         skill_success = filtered_df.groupby('Required_skill').agg({
             'Initial_success_prob': 'mean',
@@ -787,10 +787,10 @@ else:
         
         st.plotly_chart(fig_skill, width='stretch')
     
-    # Scatter plot: Success vs Distance
-    st.subheader("Success Probability vs Distance")
+        # Scatter plot: Success vs Distance
+        st.subheader("Success Probability vs Distance")
     
-    fig_scatter = px.scatter(
+        fig_scatter = px.scatter(
         filtered_df,
         x='Optimized_distance_km',
         y='Predicted_success_prob',
@@ -802,17 +802,17 @@ else:
             'Optimized_distance_km': 'Distance (km)',
             'Predicted_success_prob': 'Success Probability'
         }
-    )
+        )
     
-    st.plotly_chart(fig_scatter, width='stretch')
+        st.plotly_chart(fig_scatter, width='stretch')
 
-    # TAB 3: Distance Analysis
+        # TAB 3: Distance Analysis
     with tab3:
-    st.subheader("Distance Optimization Analysis")
+        st.subheader("Distance Optimization Analysis")
     
-    col1, col2 = st.columns(2)
+        col1, col2 = st.columns(2)
     
-    with col1:
+        with col1:
         # Distance change histogram
         fig_dist_change = px.histogram(
             filtered_df,
@@ -837,7 +837,7 @@ else:
         st.write(f"- Estimated Fuel Savings: **${abs(total_saved * 0.50):,.0f}**")
         st.write(f"- Estimated Time Saved: **{abs(total_saved * 2):,.0f} minutes**")
     
-    with col2:
+        with col2:
         # Distance by city
         city_distance = filtered_df.groupby('City').agg({
             'Initial_distance_km': 'mean',
@@ -869,13 +869,13 @@ else:
         
         st.plotly_chart(fig_city, width='stretch')
 
-    # TAB 4: Workload Balance
+        # TAB 4: Workload Balance
     with tab4:
-    st.subheader("Technician Workload Analysis")
+        st.subheader("Technician Workload Analysis")
     
-    col1, col2 = st.columns(2)
+        col1, col2 = st.columns(2)
     
-    with col1:
+        with col1:
         # Workload distribution
         fig_workload = go.Figure()
         
@@ -910,7 +910,7 @@ else:
         
         st.plotly_chart(fig_workload, width='stretch')
     
-    with col2:
+        with col2:
         # Workload statistics
         st.markdown("**Workload Statistics:**")
         
@@ -940,24 +940,24 @@ else:
         fig_workload_change.add_vline(x=0, line_dash="dash", line_color="red")
         st.plotly_chart(fig_workload_change, width='stretch')
 
-    # TAB 5: Individual Dispatches
+        # TAB 5: Individual Dispatches
     with tab5:
-    st.subheader("Individual Dispatch Details")
+        st.subheader("Individual Dispatch Details")
     
-    # Search by Dispatch ID
-    search_id = st.text_input("Search by Dispatch ID", "")
+        # Search by Dispatch ID
+        search_id = st.text_input("Search by Dispatch ID", "")
     
-    if search_id:
+        if search_id:
         filtered_df = filtered_df[filtered_df['Dispatch_id'].astype(str).str.contains(search_id)]
     
-    # Display mode
-    display_mode = st.radio(
+        # Display mode
+        display_mode = st.radio(
         "Display Mode",
         ["Show All Columns", "Show Key Metrics Only"],
         horizontal=True
-    )
+        )
     
-    if display_mode == "Show Key Metrics Only":
+        if display_mode == "Show Key Metrics Only":
         columns_to_show = [
             'Dispatch_id', 'City', 'Required_skill',
             'Assigned_technician_id', 'Optimized_technician_id',
@@ -966,11 +966,11 @@ else:
             'Fallback_level'
         ]
         display_df = filtered_df[columns_to_show]
-    else:
+        else:
         display_df = filtered_df
     
-    # Color code improvements
-    def highlight_improvements(row):
+        # Color code improvements
+        def highlight_improvements(row):
         if row['Success_prob_improvement'] > 0:
             return ['background-color: #d5f4e6'] * len(row)
         elif row['Success_prob_improvement'] < 0:
@@ -978,31 +978,31 @@ else:
         else:
             return [''] * len(row)
     
-    # Display dataframe
-    st.dataframe(
+        # Display dataframe
+        st.dataframe(
         display_df.style.apply(highlight_improvements, axis=1),
         width='stretch',
         height=400
-    )
+        )
     
-    # Download filtered data
-    csv = display_df.to_csv(index=False).encode('utf-8')
-    st.download_button(
+        # Download filtered data
+        csv = display_df.to_csv(index=False).encode('utf-8')
+        st.download_button(
         label="📥 Download Filtered Data as CSV",
         data=csv,
         file_name=f"filtered_dispatches_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
         mime="text/csv"
-    )
+        )
 
-    # ============================================================
-    # FALLBACK LEVEL ANALYSIS
-    # ============================================================
-    st.markdown("---")
-    st.header("🎯 Fallback Level Analysis")
+        # ============================================================
+        # FALLBACK LEVEL ANALYSIS
+        # ============================================================
+        st.markdown("---")
+        st.header("🎯 Fallback Level Analysis")
 
-    col1, col2 = st.columns(2)
+        col1, col2 = st.columns(2)
 
-    with col1:
+        with col1:
         # Fallback level distribution
         fallback_counts = filtered_df['Fallback_level'].value_counts()
         
@@ -1015,7 +1015,7 @@ else:
         
         st.plotly_chart(fig_fallback, width='stretch')
 
-    with col2:
+        with col2:
         # Success probability by fallback level
         fallback_success = filtered_df.groupby('Fallback_level')['Predicted_success_prob'].agg(['mean', 'count']).reset_index()
         
@@ -1034,15 +1034,15 @@ else:
         
         st.plotly_chart(fig_fallback_success, width='stretch')
 
-    # ============================================================
-    # SYSTEM INFORMATION
-    # ============================================================
-    st.markdown("---")
-    st.header("ℹ️ System Information")
+        # ============================================================
+        # SYSTEM INFORMATION
+        # ============================================================
+        st.markdown("---")
+        st.header("ℹ️ System Information")
 
-    col1, col2, col3 = st.columns(3)
+        col1, col2, col3 = st.columns(3)
 
-    with col1:
+        with col1:
         st.markdown("**Assignment Mode:**")
         # Check if ml_based is in fallback levels
         if 'ml_based' in df['Fallback_level'].unique():
@@ -1051,7 +1051,7 @@ else:
         else:
             st.info("📋 Legacy Cascading Fallback")
 
-    with col2:
+        with col2:
         st.markdown("**Optimization Timestamp:**")
         if 'Optimization_timestamp' in df.columns:
             timestamp = df['Optimization_timestamp'].iloc[0]
@@ -1059,15 +1059,15 @@ else:
         else:
             st.write("N/A")
 
-    with col3:
+        with col3:
         st.markdown("**Data Summary:**")
         st.write(f"- Total Dispatches: **{len(df)}**")
         st.write(f"- Unique Cities: **{df['City'].nunique()}**")
         st.write(f"- Unique Skills: **{df['Required_skill'].nunique()}**")
 
-    # Footer
-    st.markdown("---")
-    st.markdown(
+        # Footer
+        st.markdown("---")
+        st.markdown(
         """
         <div style='text-align: center; color: #7f8c8d; padding: 20px;'>
             <p>Smart Dispatch Optimization Dashboard v1.0</p>
@@ -1075,5 +1075,5 @@ else:
         </div>
         """,
         unsafe_allow_html=True
-    )
+        )
 
