@@ -557,10 +557,10 @@ elif view_mode == "👷 Technician View":
             date_group = date_group.sort_values('Appointment_start_time')
             
             for idx, row in date_group.iterrows():
-                # Determine priority and status
-                success_prob = row['Predicted_success_prob']
-                distance = row['Optimized_distance_km']
-                duration = row['Optimized_predicted_duration_min']
+                # Determine priority and status - safe column access
+                success_prob = row.get('Predicted_success_prob', 0.5)
+                distance = row.get('Optimized_distance_km', 0)
+                duration = row.get('Optimized_predicted_duration_min', 0)
                 
                 # Priority indicator
                 if success_prob >= 0.7:
@@ -573,38 +573,56 @@ elif view_mode == "👷 Technician View":
                     priority = "🔴 Needs Attention"
                     card_color = "#ffe0b2"
                 
+                # Safe access to card header fields
+                appt_time_header = row.get('Appointment_start_time', 'N/A')
+                dispatch_id_header = row.get('Dispatch_id', 'N/A')
+                city_header = row.get('City', 'N/A')
+                
                 # Create expandable card
                 with st.expander(
-                    f"🔧 {row['Appointment_start_time']} - Dispatch #{row['Dispatch_id']} | {row['City']} | {priority}",
+                    f"🔧 {appt_time_header} - Dispatch #{dispatch_id_header} | {city_header} | {priority}",
                     expanded=False
                 ):
                     # Card layout
                     card_col1, card_col2, card_col3 = st.columns([2, 2, 1])
                     
                     with card_col1:
+                        # Safe column access with defaults
+                        city = row.get('City', 'N/A')
+                        cust_lat = row.get('Customer_latitude', 0)
+                        cust_lon = row.get('Customer_longitude', 0)
+                        required_skill = row.get('Required_skill', 'N/A')
+                        service_tier = row.get('Service_tier', 'Standard')
+                        equipment = row.get('Equipment_installed', 'None')
+                        
                         st.markdown(f"""
                         **📍 Location Details**
-                        - **City:** {row['City']}
-                        - **Coordinates:** {row['Customer_latitude']:.4f}, {row['Customer_longitude']:.4f}
+                        - **City:** {city}
+                        - **Coordinates:** {cust_lat:.4f}, {cust_lon:.4f}
                         - **Distance:** {distance:.1f} km from base
                         
                         **🔧 Job Details**
-                        - **Required Skill:** {row['Required_skill']}
-                        - **Service Tier:** {row['Service_tier']}
-                        - **Equipment:** {row['Equipment_installed']}
+                        - **Required Skill:** {required_skill}
+                        - **Service Tier:** {service_tier}
+                        - **Equipment:** {equipment}
                         """)
                     
                     with card_col2:
+                        # Safe column access with defaults
+                        appt_time = row.get('Appointment_start_time', 'N/A')
+                        opt_confidence = row.get('Optimization_confidence', 0)
+                        opt_workload = row.get('Optimized_workload_ratio', 0)
+                        
                         st.markdown(f"""
                         **⏱️ Time & Duration**
-                        - **Appointment:** {row['Appointment_start_time']}
+                        - **Appointment:** {appt_time}
                         - **Estimated Duration:** {duration:.0f} minutes
-                        - **End Time:** ~{row['Appointment_start_time']}
+                        - **End Time:** ~{appt_time}
                         
                         **📊 Performance Metrics**
                         - **Success Probability:** {success_prob:.1%}
-                        - **Confidence Score:** {row['Optimization_confidence']:.1%}
-                        - **Workload Ratio:** {row['Optimized_workload_ratio']:.1%}
+                        - **Confidence Score:** {opt_confidence:.1%}
+                        - **Workload Ratio:** {opt_workload:.1%}
                         """)
                     
                     with card_col3:
@@ -625,20 +643,25 @@ elif view_mode == "👷 Technician View":
                     st.markdown("---")
                     btn_col1, btn_col2, btn_col3, btn_col4 = st.columns(4)
                     
+                    # Safe column access for buttons
+                    btn_dispatch_id = row.get('Dispatch_id', idx)
+                    btn_cust_lat = row.get('Customer_latitude', 0)
+                    btn_cust_lon = row.get('Customer_longitude', 0)
+                    
                     with btn_col1:
-                        if st.button(f"📍 View Map", key=f"map_{row['Dispatch_id']}"):
-                            st.info(f"Map view: ({row['Customer_latitude']}, {row['Customer_longitude']})")
+                        if st.button(f"📍 View Map", key=f"map_{btn_dispatch_id}"):
+                            st.info(f"Map view: ({btn_cust_lat}, {btn_cust_lon})")
                     
                     with btn_col2:
-                        if st.button(f"📞 Contact", key=f"contact_{row['Dispatch_id']}"):
+                        if st.button(f"📞 Contact", key=f"contact_{btn_dispatch_id}"):
                             st.info("Customer contact feature")
                     
                     with btn_col3:
-                        if st.button(f"📝 Notes", key=f"notes_{row['Dispatch_id']}"):
+                        if st.button(f"📝 Notes", key=f"notes_{btn_dispatch_id}"):
                             st.info("Add notes feature")
                     
                     with btn_col4:
-                        if st.button(f"✅ Complete", key=f"complete_{row['Dispatch_id']}"):
+                        if st.button(f"✅ Complete", key=f"complete_{btn_dispatch_id}"):
                             st.success("Mark as complete feature")
             
             st.markdown("---")
