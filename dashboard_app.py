@@ -52,6 +52,10 @@ st.markdown("""
 st.title("🚚 Smart Dispatch Optimization Dashboard")
 st.markdown("### ML-Based Technician Assignment System")
 
+# Data source indicator
+data_source = "optimized_assignments.csv" if os.path.exists('optimized_assignments.csv') else "optimized_dispatch_results.csv"
+st.caption(f"📊 Data Source: `{data_source}` | Last Updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
 # View selector
 view_mode = st.radio(
     "Select View:",
@@ -65,22 +69,214 @@ st.markdown("---")
 # Load data
 @st.cache_data
 def load_data():
-    """Load the optimized dispatch results"""
+    """Load the optimized dispatch results from optimize_dispatches.py output"""
     try:
-        # Try to load the results file
-        if os.path.exists('optimized_dispatch_results.csv'):
+        # Check if optimized_assignments.csv exists (new format)
+        if os.path.exists('optimized_assignments.csv'):
+            # Load optimized assignments
+            optimized = pd.read_csv('optimized_assignments.csv')
+            
+            # Load current dispatches for full details
+            if not os.path.exists('current_dispatches.csv'):
+                return None, "⚠️ current_dispatches.csv not found. Please ensure your data files are present."
+            
+            dispatches = pd.read_csv('current_dispatches.csv')
+            
+            # Standardize column names for merging
+            # optimized_assignments.csv uses lowercase dispatch_id
+            # current_dispatches.csv might use Dispatch_id
+            if 'Dispatch_id' in dispatches.columns:
+                dispatches = dispatches.rename(columns={'Dispatch_id': 'dispatch_id'})
+            
+            # Merge optimized assignments with dispatch details
+            df = dispatches.merge(
+                optimized[['dispatch_id', 'optimized_technician_id', 'success_probability', 
+                          'estimated_duration', 'distance', 'skill_match', 'score', 
+                          'has_warnings', 'warning_count']],
+                on='dispatch_id',
+                how='left'
+            )
+            
+            # Standardize column names to match dashboard expectations
+            column_mapping = {
+                'dispatch_id': 'Dispatch_id',
+                'ticket_type': 'Ticket_type',
+                'order_type': 'Order_type',
+                'priority': 'Priority',
+                'required_skill': 'Required_skill',
+                'status': 'Status',
+                'street': 'Street',
+                'city': 'City',
+                'county': 'County',
+                'state': 'State',
+                'postal_code': 'Postal_code',
+                'customer_latitude': 'Customer_latitude',
+                'customer_longitude': 'Customer_longitude',
+                'appointment_start_datetime': 'Appointment_start_datetime',
+                'appointment_end_datetime': 'Appointment_end_datetime',
+                'duration_min': 'Duration_min',
+                'assigned_technician_id': 'Assigned_technician_id',
+                'optimized_technician_id': 'Optimized_technician_id',
+                'success_probability': 'Predicted_success_prob',
+                'estimated_duration': 'Optimized_predicted_duration_min',
+                'distance': 'Optimized_distance_km',
+                'skill_match': 'Skill_match_score',
+                'score': 'Optimization_score',
+                'has_warnings': 'Has_warnings',
+                'warning_count': 'Warning_count'
+            }
+            
+            # Apply column mapping (only for columns that exist)
+            df = df.rename(columns={k: v for k, v in column_mapping.items() if k in df.columns})
+            
+            # Ensure required columns exist with defaults if missing
+            if 'Appointment_date' not in df.columns and 'Appointment_start_datetime' in df.columns:
+                df['Appointment_date'] = pd.to_datetime(df['Appointment_start_datetime'], errors='coerce').dt.date
+            
+            if 'Appointment_start_time' not in df.columns and 'Appointment_start_datetime' in df.columns:
+                df['Appointment_start_time'] = pd.to_datetime(df['Appointment_start_datetime'], errors='coerce').dt.time
+            
+            # Add derived columns for dashboard compatibility
+            if 'Initial_success_prob' not in df.columns:
+                # Use a baseline success probability if not available
+                df['Initial_success_prob'] = 0.5
+            
+            if 'Initial_distance_km' not in df.columns:
+                df['Initial_distance_km'] = df.get('Optimized_distance_km', 0)
+            
+            if 'Initial_workload_ratio' not in df.columns:
+                df['Initial_workload_ratio'] = 0.5
+            
+            if 'Optimized_workload_ratio' not in df.columns:
+                df['Optimized_workload_ratio'] = 0.6
+            
+            # Add comparison metrics
+            if 'Success_prob_improvement' not in df.columns and 'Predicted_success_prob' in df.columns:
+                df['Success_prob_improvement'] = df['Predicted_success_prob'] - df['Initial_success_prob']
+            
+            if 'Distance_change_km' not in df.columns:
+                df['Distance_change_km'] = df.get('Optimized_distance_km', 0) - df.get('Initial_distance_km', 0)
+            
+            if 'Workload_ratio_change' not in df.columns:
+                df['Workload_ratio_change'] = df.get('Optimized_workload_ratio', 0) - df.get('Initial_workload_ratio', 0)
+            
+            # Add fallback level (from new system)
+            if 'Fallback_level' not in df.columns:
+                df['Fallback_level'] = 'ml_optimized'
+            
+            # Add optimization confidence
+            if 'Optimization_confidence' not in df.columns and 'Predicted_success_prob' in df.columns:
+                df['Optimization_confidence'] = df['Predicted_success_prob']
+            
+            # Add optimization timestamp
+            if 'Optimization_timestamp' not in df.columns:
+                df['Optimization_timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            
+            # Add service tier and equipment if missing
+            if 'Service_tier' not in df.columns:
+                df['Service_tier'] = 'Standard'
+            
+            if 'Equipment_installed' not in df.columns:
+                df['Equipment_installed'] = 'None'
+            
+            # Add first time fix if missing
+            if 'First_time_fix' not in df.columns:
+                df['First_time_fix'] = 1
+            
+            return df, None
+            
+        # Fall back to old format if new format not available
+        elif os.path.exists('optimized_dispatch_results.csv'):
             df = pd.read_csv('optimized_dispatch_results.csv')
             return df, None
         else:
-            return None, "⚠️ Results file not found. Please run dispatch_agent.py first."
+            return None, "⚠️ No results file found. Please run: `python optimize_dispatches.py`"
+            
     except Exception as e:
-        return None, f"⚠️ Error loading data: {str(e)}"
+        import traceback
+        error_details = traceback.format_exc()
+        return None, f"⚠️ Error loading data: {str(e)}\n\nDetails:\n{error_details}"
 
+# Add data management sidebar
+st.sidebar.markdown("---")
+st.sidebar.header("🔄 Data Management")
+
+# Show data source info
+st.sidebar.markdown("**Current Data Source:**")
+if os.path.exists('optimized_assignments.csv'):
+    file_stats = os.stat('optimized_assignments.csv')
+    file_time = datetime.fromtimestamp(file_stats.st_mtime)
+    st.sidebar.success(f"✅ optimized_assignments.csv")
+    st.sidebar.caption(f"Modified: {file_time.strftime('%Y-%m-%d %H:%M:%S')}")
+    st.sidebar.caption(f"Size: {file_stats.st_size / 1024:.1f} KB")
+elif os.path.exists('optimized_dispatch_results.csv'):
+    file_stats = os.stat('optimized_dispatch_results.csv')
+    file_time = datetime.fromtimestamp(file_stats.st_mtime)
+    st.sidebar.info(f"ℹ️ optimized_dispatch_results.csv (legacy)")
+    st.sidebar.caption(f"Modified: {file_time.strftime('%Y-%m-%d %H:%M:%S')}")
+else:
+    st.sidebar.warning("⚠️ No data file found")
+
+st.sidebar.markdown("---")
+
+# Buttons for data management
+col1, col2 = st.sidebar.columns(2)
+
+with col1:
+    if st.button("🚀 Run Optimization", help="Execute optimize_dispatches.py", use_container_width=True):
+        with st.spinner("Running optimization..."):
+            try:
+                import subprocess
+                result = subprocess.run(['python', 'optimize_dispatches.py'], 
+                                       capture_output=True, 
+                                       text=True,
+                                       timeout=300)
+                
+                if result.returncode == 0:
+                    st.success("✅ Optimization complete!")
+                    st.cache_data.clear()
+                    st.rerun()
+                else:
+                    st.error(f"❌ Failed:\n{result.stderr[:200]}")
+            except subprocess.TimeoutExpired:
+                st.error("⏱️ Timeout (> 5 min)")
+            except Exception as e:
+                st.error(f"❌ Error: {str(e)}")
+
+with col2:
+    if st.button("🔄 Refresh", help="Reload data from CSV", use_container_width=True):
+        st.cache_data.clear()
+        st.rerun()
+
+st.sidebar.markdown("---")
+
+# Show optimization settings info
+st.sidebar.header("⚙️ Optimization Info")
+st.sidebar.markdown("""
+**Scoring Weights:**
+- Success Probability: 50%
+- Workload Balance: 35%
+- Travel Distance: 10%
+- Estimated Overrun: 5%
+
+**Data Source:**
+- Script: `optimize_dispatches.py`
+- Output: `optimized_assignments.csv`
+- Input: `current_dispatches.csv`
+""")
+
+# Load data
 df, error = load_data()
 
 if error:
     st.error(error)
-    st.info("Run the dispatch agent first: `python dispatch_agent.py`")
+    st.info("""
+    **To generate optimization results:**
+    1. Ensure you have `current_dispatches.csv` in the project directory
+    2. Click the '🚀 Run Optimization' button in the sidebar, OR
+    3. Run from terminal: `python optimize_dispatches.py`
+    4. The dashboard will automatically load `optimized_assignments.csv`
+    """)
     st.stop()
 
 # ============================================================
