@@ -1277,16 +1277,16 @@ else:
 
     # Calculate key metrics
     total_dispatches = len(filtered_df)
-    assigned_dispatches = filtered_df['Optimized_technician_id'].notna().sum()
-    unassigned_dispatches = total_dispatches - assigned_dispatches
+    assigned_dispatches = int(filtered_df['Optimized_technician_id'].notna().sum())
+    unassigned_dispatches = int(total_dispatches - assigned_dispatches)
     assignment_rate = (assigned_dispatches / total_dispatches * 100) if total_dispatches > 0 else 0
     
-    avg_success_prob = filtered_df['Predicted_success_prob'].mean() if 'Predicted_success_prob' in filtered_df.columns else 0
-    avg_opt_score = filtered_df['Optimization_score'].mean() if 'Optimization_score' in filtered_df.columns else 0
-    avg_distance = filtered_df['Optimized_distance_km'].mean() if 'Optimized_distance_km' in filtered_df.columns else 0
+    avg_success_prob = float(filtered_df['Predicted_success_prob'].mean() if 'Predicted_success_prob' in filtered_df.columns else 0)
+    avg_opt_score = float(filtered_df['Optimization_score'].mean() if 'Optimization_score' in filtered_df.columns else 0)
+    avg_distance = float(filtered_df['Optimized_distance_km'].mean() if 'Optimized_distance_km' in filtered_df.columns else 0)
     
     # Count warnings
-    has_warnings = filtered_df['Has_warnings'].sum() if 'Has_warnings' in filtered_df.columns else 0
+    has_warnings = int(filtered_df['Has_warnings'].sum() if 'Has_warnings' in filtered_df.columns else 0)
     warning_rate = (has_warnings / total_dispatches * 100) if total_dispatches > 0 else 0
 
     with col1:
