@@ -313,99 +313,16 @@ with st.sidebar.expander("ℹ️ About Optimization"):
     """)
 
 # ============================================================
-# AI ASSISTANT CHAT
+# AI ASSISTANT CHAT (Placeholder - initialized after data loads)
 # ============================================================
 st.sidebar.markdown("---")
 st.sidebar.header("🤖 AI Assistant")
 
-if AI_AVAILABLE:
-    # Initialize AI Assistant
-    if 'ai_assistant' not in st.session_state:
-        st.session_state.ai_assistant = DispatchAIAssistant(df)
-    
-    # User role selection
-    user_role = st.sidebar.radio(
-        "I am a:",
-        ["👔 Dispatch Manager", "👷 Technician"],
-        key="user_role"
-    )
-    
-    role = "manager" if "Manager" in user_role else "technician"
-    
-    # Technician ID input for technicians
-    tech_context = {}
-    if role == "technician":
-        tech_id = st.sidebar.text_input(
-            "Your Technician ID:",
-            placeholder="e.g., T900001",
-            key="tech_id_input"
-        )
-        if tech_id:
-            tech_context['technician_id'] = tech_id
-    
-    # Chat interface in expander
-    with st.sidebar.expander("💬 Ask AI Assistant", expanded=False):
-        # Initialize chat history
-        if 'chat_history' not in st.session_state:
-            st.session_state.chat_history = []
-        
-        # Chat input
-        user_query = st.text_area(
-            "Ask me anything:",
-            placeholder="e.g., Show me dispatch #200000016 details",
-            height=100,
-            key="ai_query_input"
-        )
-        
-        col1, col2 = st.columns([1, 1])
-        with col1:
-            if st.button("🚀 Ask", use_container_width=True):
-                if user_query:
-                    # Process query
-                    response = st.session_state.ai_assistant.process_query(
-                        user_query, 
-                        user_role=role,
-                        context=tech_context
-                    )
-                    
-                    # Add to chat history
-                    st.session_state.chat_history.append({
-                        'query': user_query,
-                        'response': response,
-                        'timestamp': datetime.now().strftime('%H:%M:%S')
-                    })
-        
-        with col2:
-            if st.button("🗑️ Clear", use_container_width=True):
-                st.session_state.chat_history = []
-                st.rerun()
-        
-        # Show help button
-        if st.button("❓ Help", use_container_width=True):
-            help_msg = st.session_state.ai_assistant._get_help_message(role)
-            st.session_state.chat_history.append({
-                'query': 'Help',
-                'response': help_msg,
-                'timestamp': datetime.now().strftime('%H:%M:%S')
-            })
-        
-        # Display chat history (most recent first)
-        st.markdown("---")
-        st.markdown("**💬 Chat History:**")
-        
-        if st.session_state.chat_history:
-            for i, chat in enumerate(reversed(st.session_state.chat_history[-5:])):  # Show last 5
-                st.markdown(f"**[{chat['timestamp']}] You:**")
-                st.info(chat['query'])
-                st.markdown(f"**AI Assistant:**")
-                st.success(chat['response'])
-                st.markdown("---")
-        else:
-            st.caption("No chat history yet. Ask me a question!")
-
-else:
+if not AI_AVAILABLE:
     st.sidebar.warning("AI Assistant not available. Please ensure ai_assistant.py is in the project directory.")
     st.sidebar.caption("The AI assistant helps answer questions about dispatches, routes, and assignments.")
+else:
+    st.sidebar.info("💬 AI Assistant will be available after data loads. Use the chat expander below or switch to the AI Assistant view.")
 
 # Load data
 df, error = load_data()
@@ -420,6 +337,102 @@ if error:
     4. The dashboard will automatically load `optimized_assignments.csv`
     """)
     st.stop()
+
+# ============================================================
+# AI ASSISTANT INITIALIZATION (After data is loaded)
+# ============================================================
+
+if AI_AVAILABLE and df is not None:
+    # Initialize AI Assistant with loaded data
+    if 'ai_assistant' not in st.session_state:
+        st.session_state.ai_assistant = DispatchAIAssistant(df)
+    
+    # Update sidebar with AI Assistant chat
+    with st.sidebar:
+        st.markdown("---")
+        
+        # User role selection
+        user_role = st.radio(
+            "I am a:",
+            ["👔 Dispatch Manager", "👷 Technician"],
+            key="sidebar_user_role"
+        )
+        
+        role = "manager" if "Manager" in user_role else "technician"
+        
+        # Technician ID input for technicians
+        tech_context = {}
+        if role == "technician":
+            tech_id = st.text_input(
+                "Your Technician ID:",
+                placeholder="e.g., T900001",
+                key="sidebar_tech_id"
+            )
+            if tech_id:
+                tech_context['technician_id'] = tech_id
+        
+        # Chat interface in expander
+        with st.expander("💬 Ask AI Assistant", expanded=False):
+            # Initialize chat history
+            if 'sidebar_chat_history' not in st.session_state:
+                st.session_state.sidebar_chat_history = []
+            
+            # Chat input
+            user_query = st.text_area(
+                "Ask me anything:",
+                placeholder="e.g., Show me dispatch #200000016 details",
+                height=100,
+                key="sidebar_ai_query"
+            )
+            
+            col1, col2 = st.columns([1, 1])
+            with col1:
+                if st.button("🚀 Ask", use_container_width=True, key="sidebar_ask_btn"):
+                    if user_query:
+                        # Process query
+                        response = st.session_state.ai_assistant.process_query(
+                            user_query, 
+                            user_role=role,
+                            context=tech_context
+                        )
+                        
+                        # Add to chat history
+                        st.session_state.sidebar_chat_history.append({
+                            'query': user_query,
+                            'response': response,
+                            'timestamp': datetime.now().strftime('%H:%M:%S')
+                        })
+                        st.rerun()
+            
+            with col2:
+                if st.button("🗑️ Clear", use_container_width=True, key="sidebar_clear_btn"):
+                    st.session_state.sidebar_chat_history = []
+                    st.rerun()
+            
+            # Show help button
+            if st.button("❓ Help", use_container_width=True, key="sidebar_help_btn"):
+                help_msg = st.session_state.ai_assistant._get_help_message(role)
+                st.session_state.sidebar_chat_history.append({
+                    'query': 'Help',
+                    'response': help_msg,
+                    'timestamp': datetime.now().strftime('%H:%M:%S')
+                })
+                st.rerun()
+            
+            # Display chat history (most recent first)
+            st.markdown("---")
+            st.markdown("**💬 Recent Chats:**")
+            
+            if st.session_state.sidebar_chat_history:
+                for i, chat in enumerate(reversed(st.session_state.sidebar_chat_history[-3:])):  # Show last 3
+                    st.markdown(f"**[{chat['timestamp']}] You:**")
+                    st.info(chat['query'])
+                    st.markdown(f"**AI:**")
+                    st.success(chat['response'])
+                    if i < min(2, len(st.session_state.sidebar_chat_history) - 1):
+                        st.markdown("---")
+            else:
+                st.caption("No chat history yet. Ask me a question!")
 
 # ============================================================
 # VIEW ROUTING
@@ -1031,9 +1044,10 @@ elif view_mode == "🤖 AI Assistant":
         """)
         st.stop()
     
-    # Initialize AI Assistant
-    if 'ai_assistant_main' not in st.session_state:
-        st.session_state.ai_assistant_main = DispatchAIAssistant(df)
+    # AI Assistant should already be initialized after data load
+    # Just ensure it exists (fallback)
+    if 'ai_assistant' not in st.session_state:
+        st.session_state.ai_assistant = DispatchAIAssistant(df)
     
     if 'main_chat_history' not in st.session_state:
         st.session_state.main_chat_history = []
@@ -1071,7 +1085,7 @@ elif view_mode == "🤖 AI Assistant":
     
     with col1:
         if st.button("🚨 High Priority", use_container_width=True):
-            response = st.session_state.ai_assistant_main.get_high_priority_dispatches()
+            response = st.session_state.ai_assistant.get_high_priority_dispatches()
             st.session_state.main_chat_history.append({
                 'query': 'Show high priority dispatches',
                 'response': response,
@@ -1080,7 +1094,7 @@ elif view_mode == "🤖 AI Assistant":
     
     with col2:
         if st.button("⚠️ Unassigned", use_container_width=True):
-            response = st.session_state.ai_assistant_main.get_unassigned_dispatches()
+            response = st.session_state.ai_assistant.get_unassigned_dispatches()
             st.session_state.main_chat_history.append({
                 'query': 'Show unassigned dispatches',
                 'response': response,
@@ -1089,7 +1103,7 @@ elif view_mode == "🤖 AI Assistant":
     
     with col3:
         if st.button("⚖️ Workload", use_container_width=True):
-            response = st.session_state.ai_assistant_main.get_workload_summary()
+            response = st.session_state.ai_assistant.get_workload_summary()
             st.session_state.main_chat_history.append({
                 'query': 'Show workload summary',
                 'response': response,
@@ -1099,7 +1113,7 @@ elif view_mode == "🤖 AI Assistant":
     with col4:
         if role == "technician" and tech_context.get('technician_id'):
             if st.button("📅 My Schedule", use_container_width=True):
-                response = st.session_state.ai_assistant_main.get_technician_schedule(tech_context['technician_id'])
+                response = st.session_state.ai_assistant.get_technician_schedule(tech_context['technician_id'])
                 st.session_state.main_chat_history.append({
                     'query': f"Show schedule for {tech_context['technician_id']}",
                     'response': response,
@@ -1107,7 +1121,7 @@ elif view_mode == "🤖 AI Assistant":
                 })
         else:
             if st.button("❓ Help", use_container_width=True):
-                response = st.session_state.ai_assistant_main._get_help_message(role)
+                response = st.session_state.ai_assistant._get_help_message(role)
                 st.session_state.main_chat_history.append({
                     'query': 'Help',
                     'response': response,
@@ -1133,7 +1147,7 @@ elif view_mode == "🤖 AI Assistant":
         if st.button("🚀 Ask AI", use_container_width=True, type="primary"):
             if user_query:
                 with st.spinner("🤔 Thinking..."):
-                    response = st.session_state.ai_assistant_main.process_query(
+                    response = st.session_state.ai_assistant.process_query(
                         user_query, 
                         user_role=role,
                         context=tech_context
@@ -1153,7 +1167,7 @@ elif view_mode == "🤖 AI Assistant":
     
     with col3:
         if st.button("❓ Show Help", use_container_width=True):
-            help_msg = st.session_state.ai_assistant_main._get_help_message(role)
+            help_msg = st.session_state.ai_assistant._get_help_message(role)
             st.session_state.main_chat_history.append({
                 'query': 'Help - What can you do?',
                 'response': help_msg,
