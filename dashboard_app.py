@@ -1,5 +1,5 @@
 """
-Smart Dispatch Optimization Dashboard
+F-Ai-ber Force Smart Dispatch Dashboard
 Interactive web application to visualize dispatch optimization results
 """
 
@@ -14,7 +14,7 @@ import os
 
 # Page configuration
 st.set_page_config(
-    page_title="Smart Dispatch Optimization",
+    page_title="F-Ai-ber Force Smart Dispatch",
     page_icon="🚚",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -49,7 +49,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # Title and header
-st.title("🚚 Smart Dispatch Optimization Dashboard")
+st.title("🚚 F-Ai-ber Force Smart Dispatch Dashboard")
 st.markdown("### ML-Based Technician Assignment System")
 
 # Data source indicator
@@ -226,9 +226,15 @@ with col1:
     # Check if optimization script and dependencies exist
     optimization_available = os.path.exists('optimize_dispatches.py')
     
-    if st.button("🚀 Run Optimization", 
-                 help="Execute optimize_dispatches.py" if optimization_available else "Optimization script not available on Streamlit Cloud", 
-                 disabled=not optimization_available,
+    # For Streamlit Cloud, always show as unavailable with explanation
+    is_cloud = not optimization_available or not os.path.exists('.git')
+    
+    button_label = "🚀 Run Optimization (Local Only)"
+    button_help = "Run optimization locally, then upload results" if is_cloud else "Execute optimize_dispatches.py"
+    
+    if st.button(button_label, 
+                 help=button_help,
+                 disabled=is_cloud,
                  use_container_width=True):
         with st.spinner("Running optimization..."):
             try:
@@ -248,9 +254,6 @@ with col1:
                 st.error("⏱️ Timeout (> 5 min)")
             except Exception as e:
                 st.error(f"❌ Error: {str(e)}")
-    
-    if not optimization_available:
-        st.sidebar.warning("⚠️ Optimization unavailable")
 
 with col2:
     if st.button("🔄 Refresh", help="Reload data from CSV", use_container_width=True):
@@ -260,33 +263,45 @@ with col2:
 st.sidebar.markdown("---")
 
 # Show optimization settings info
-st.sidebar.header("⚙️ Optimization Info")
+st.sidebar.header("⚙️ How to Update Data")
 
-if not os.path.exists('optimize_dispatches.py'):
-    st.sidebar.info("""
-    **ℹ️ How to Run Optimization:**
-    
-    The optimization engine requires local execution due to database dependencies.
-    
-    **Steps:**
-    1. Run locally: `python optimize_dispatches.py`
-    2. Upload `optimized_assignments.csv` to GitHub
-    3. Refresh this dashboard
-    
-    **Or:** Upload pre-generated results directly to your repo.
-    """)
-else:
-    st.sidebar.markdown("""
+# Always show instructions (works for both cloud and local)
+st.sidebar.info("""
+**📝 Workflow:**
+
+1️⃣ **Run Locally**
+```bash
+python optimize_dispatches.py
+```
+
+2️⃣ **Upload to GitHub**
+```bash
+git add optimized_assignments.csv
+git commit -m "Update results"
+git push
+```
+
+3️⃣ **Wait 1-2 min**
+Dashboard auto-updates!
+
+🔄 Click "Refresh" button to reload
+""")
+
+with st.sidebar.expander("ℹ️ About Optimization"):
+    st.markdown("""
     **Scoring Weights:**
     - Success Probability: 50%
     - Workload Balance: 35%
     - Travel Distance: 10%
     - Estimated Overrun: 5%
 
-    **Data Source:**
-    - Script: `optimize_dispatches.py`
-    - Output: `optimized_assignments.csv`
-    - Input: `current_dispatches.csv`
+    **Requirements:**
+    - PostgreSQL database
+    - ML models (local)
+    - Python dependencies
+    
+    **Why local-only?**
+    Needs database access and large ML model files not suitable for cloud deployment.
     """)
 
 # Load data
@@ -1757,7 +1772,7 @@ else:
         st.markdown(
             """
             <div style='text-align: center; color: #7f8c8d; padding: 20px;'>
-                <p>Smart Dispatch Optimization Dashboard v1.0</p>
+                <p>F-Ai-ber Force Smart Dispatch Dashboard v1.0</p>
                 <p>Powered by ML-Based Assignment System | Built with Streamlit</p>
             </div>
             """,
