@@ -245,10 +245,10 @@ if view_mode == "📋 Assignments (Manager)":
 
 elif view_mode == "👷 Technician View":
     # ============================================================
-    # TECHNICIAN VIEW - FOR INDIVIDUAL TECHNICIANS
+    # TECHNICIAN VIEW - INTERACTIVE DAILY ASSIGNMENT MANAGEMENT
     # ============================================================
-    st.header("👷 Technician Assignment View")
-    st.markdown("View your assigned dispatches and details")
+    st.header("👷 My Daily Assignments Dashboard")
+    st.markdown("Manage your daily schedule and track assignment details")
     
     # Technician selector
     assigned_df = df[df['Optimized_technician_id'].notna()].copy()
@@ -258,129 +258,400 @@ elif view_mode == "👷 Technician View":
         st.warning("No technicians have been assigned yet.")
         st.stop()
     
-    selected_tech = st.selectbox(
-        "Select Technician ID:",
-        technicians_list,
-        key="tech_selector"
-    )
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        selected_tech = st.selectbox(
+            "👤 Select Technician ID:",
+            technicians_list,
+            key="tech_selector"
+        )
+    
+    with col2:
+        # Date filter
+        date_filter = st.selectbox(
+            "📅 View:",
+            ["All Assignments", "Today Only", "This Week", "Upcoming"],
+            key="date_filter"
+        )
     
     # Filter for selected technician
     tech_assignments = assigned_df[assigned_df['Optimized_technician_id'] == selected_tech].copy()
     
-    # Technician summary
-    st.markdown(f"### 📊 Summary for Technician: {selected_tech}")
+    # Parse dates for filtering
+    tech_assignments['Appointment_date_parsed'] = pd.to_datetime(tech_assignments['Appointment_date'], errors='coerce')
+    today = pd.Timestamp.now().normalize()
+    week_end = today + pd.Timedelta(days=7)
     
-    col1, col2, col3, col4 = st.columns(4)
+    # Apply date filter
+    if date_filter == "Today Only":
+        tech_assignments = tech_assignments[tech_assignments['Appointment_date_parsed'] == today]
+    elif date_filter == "This Week":
+        tech_assignments = tech_assignments[
+            (tech_assignments['Appointment_date_parsed'] >= today) & 
+            (tech_assignments['Appointment_date_parsed'] <= week_end)
+        ]
+    elif date_filter == "Upcoming":
+        tech_assignments = tech_assignments[tech_assignments['Appointment_date_parsed'] >= today]
+    
+    if len(tech_assignments) == 0:
+        st.info(f"No assignments found for the selected time period ({date_filter}).")
+        st.stop()
+    
+    # ============================================================
+    # DASHBOARD METRICS
+    # ============================================================
+    st.markdown(f"### 📊 Overview - {len(tech_assignments)} Assignment(s)")
+    
+    col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
-        st.metric("Total Assignments", len(tech_assignments))
+        st.metric("📋 Total Jobs", len(tech_assignments))
     
     with col2:
         avg_success = tech_assignments['Predicted_success_prob'].mean()
-        st.metric("Avg Success Probability", f"{avg_success:.3f}")
+        success_color = "🟢" if avg_success >= 0.7 else "🟡" if avg_success >= 0.5 else "🔴"
+        st.metric("🎯 Avg Success", f"{avg_success:.1%}", f"{success_color}")
     
     with col3:
         total_distance = tech_assignments['Optimized_distance_km'].sum()
-        st.metric("Total Travel Distance", f"{total_distance:.1f} km")
+        st.metric("🚗 Total Distance", f"{total_distance:.1f} km")
     
     with col4:
+        total_duration = tech_assignments['Optimized_predicted_duration_min'].sum()
+        hours = total_duration / 60
+        st.metric("⏱️ Est. Time", f"{hours:.1f} hrs")
+    
+    with col5:
         avg_workload = tech_assignments['Optimized_workload_ratio'].mean()
-        workload_status = "🔴 High" if avg_workload > 0.8 else "🟡 Medium" if avg_workload > 0.5 else "🟢 Low"
-        st.metric("Workload", f"{avg_workload:.1%}", workload_status)
+        workload_emoji = "🔴" if avg_workload > 0.8 else "🟡" if avg_workload > 0.5 else "🟢"
+        st.metric("📊 Workload", f"{avg_workload:.0%}", f"{workload_emoji}")
     
     st.markdown("---")
     
-    # Assignments by city
-    col1, col2 = st.columns(2)
+    # ============================================================
+    # INTERACTIVE ASSIGNMENT CARDS
+    # ============================================================
+    st.markdown("### 📋 Assignment Details")
     
-    with col1:
-        city_counts = tech_assignments['City'].value_counts()
-        fig_cities = px.pie(
-            values=city_counts.values,
-            names=city_counts.index,
-            title='Assignments by City',
-            hole=0.3
-        )
-        st.plotly_chart(fig_cities, width='stretch')
+    # Sort by appointment date and time
+    tech_assignments = tech_assignments.sort_values(['Appointment_date', 'Appointment_start_time'])
     
-    with col2:
-        skill_counts = tech_assignments['Required_skill'].value_counts()
-        fig_skills = px.bar(
-            x=skill_counts.index,
-            y=skill_counts.values,
-            title='Assignments by Required Skill',
-            labels={'x': 'Skill', 'y': 'Count'}
-        )
-        st.plotly_chart(fig_skills, width='stretch')
-    
-    st.markdown("---")
-    
-    # Detailed assignments table
-    st.markdown("### 📋 Your Assignments")
-    
-    # Sort by date
-    tech_assignments = tech_assignments.sort_values('Appointment_date')
-    
-    # Prepare display
-    display_cols = [
-        'Dispatch_id', 'Appointment_date', 'Appointment_start_time',
-        'City', 'Customer_latitude', 'Customer_longitude',
-        'Required_skill', 'Service_tier', 'Equipment_installed',
-        'Optimized_distance_km', 'Predicted_success_prob',
-        'Optimized_predicted_duration_min', 'Optimization_confidence'
-    ]
-    
-    tech_display = tech_assignments[display_cols].copy()
-    tech_display.columns = [
-        'Dispatch ID', 'Date', 'Time',
-        'City', 'Latitude', 'Longitude',
-        'Required Skill', 'Service Tier', 'Equipment',
-        'Distance (km)', 'Success Prob',
-        'Est. Duration (min)', 'Confidence'
-    ]
-    
-    # Color code by success probability
-    def color_tech_assignments(row):
-        success = row['Success Prob']
-        if success >= 0.7:
-            return ['background-color: #d5f4e6'] * len(row)
-        elif success >= 0.5:
-            return ['background-color: #fff9c4'] * len(row)
-        else:
-            return ['background-color: #ffe0b2'] * len(row)
-    
-    st.dataframe(
-        tech_display.style.apply(color_tech_assignments, axis=1),
-        width='stretch',
-        height=500
+    # View mode selector
+    view_mode_tech = st.radio(
+        "Display Mode:",
+        ["📇 Detailed Cards", "📊 Table View", "🗺️ Route Overview"],
+        horizontal=True,
+        key="tech_view_mode"
     )
     
-    # Performance insights
+    if view_mode_tech == "📇 Detailed Cards":
+        # ============================================================
+        # DETAILED CARD VIEW
+        # ============================================================
+        
+        # Group by date
+        tech_assignments['date_only'] = tech_assignments['Appointment_date_parsed'].dt.date
+        
+        for date, date_group in tech_assignments.groupby('date_only'):
+            st.markdown(f"#### 📅 {date.strftime('%A, %B %d, %Y')}")
+            st.markdown(f"*{len(date_group)} assignment(s) scheduled*")
+            
+            # Sort by time within date
+            date_group = date_group.sort_values('Appointment_start_time')
+            
+            for idx, row in date_group.iterrows():
+                # Determine priority and status
+                success_prob = row['Predicted_success_prob']
+                distance = row['Optimized_distance_km']
+                duration = row['Optimized_predicted_duration_min']
+                
+                # Priority indicator
+                if success_prob >= 0.7:
+                    priority = "🟢 High Confidence"
+                    card_color = "#d5f4e6"
+                elif success_prob >= 0.5:
+                    priority = "🟡 Medium Confidence"
+                    card_color = "#fff9c4"
+                else:
+                    priority = "🔴 Needs Attention"
+                    card_color = "#ffe0b2"
+                
+                # Create expandable card
+                with st.expander(
+                    f"🔧 {row['Appointment_start_time']} - Dispatch #{row['Dispatch_id']} | {row['City']} | {priority}",
+                    expanded=False
+                ):
+                    # Card layout
+                    card_col1, card_col2, card_col3 = st.columns([2, 2, 1])
+                    
+                    with card_col1:
+                        st.markdown(f"""
+                        **📍 Location Details**
+                        - **City:** {row['City']}
+                        - **Coordinates:** {row['Customer_latitude']:.4f}, {row['Customer_longitude']:.4f}
+                        - **Distance:** {distance:.1f} km from base
+                        
+                        **🔧 Job Details**
+                        - **Required Skill:** {row['Required_skill']}
+                        - **Service Tier:** {row['Service_tier']}
+                        - **Equipment:** {row['Equipment_installed']}
+                        """)
+                    
+                    with card_col2:
+                        st.markdown(f"""
+                        **⏱️ Time & Duration**
+                        - **Appointment:** {row['Appointment_start_time']}
+                        - **Estimated Duration:** {duration:.0f} minutes
+                        - **End Time:** ~{row['Appointment_start_time']}
+                        
+                        **📊 Performance Metrics**
+                        - **Success Probability:** {success_prob:.1%}
+                        - **Confidence Score:** {row['Optimization_confidence']:.1%}
+                        - **Workload Ratio:** {row['Optimized_workload_ratio']:.1%}
+                        """)
+                    
+                    with card_col3:
+                        # Visual indicators
+                        st.markdown("**Status**")
+                        st.markdown(f"<div style='background-color: {card_color}; padding: 10px; border-radius: 5px; text-align: center;'>{priority}</div>", unsafe_allow_html=True)
+                        
+                        st.markdown("")
+                        st.markdown("**Priority**")
+                        if success_prob < 0.5:
+                            st.warning("⚠️ Review Required")
+                        elif distance > 50:
+                            st.info("🚗 Long Distance")
+                        else:
+                            st.success("✅ Standard")
+                    
+                    # Action buttons
+                    st.markdown("---")
+                    btn_col1, btn_col2, btn_col3, btn_col4 = st.columns(4)
+                    
+                    with btn_col1:
+                        if st.button(f"📍 View Map", key=f"map_{row['Dispatch_id']}"):
+                            st.info(f"Map view: ({row['Customer_latitude']}, {row['Customer_longitude']})")
+                    
+                    with btn_col2:
+                        if st.button(f"📞 Contact", key=f"contact_{row['Dispatch_id']}"):
+                            st.info("Customer contact feature")
+                    
+                    with btn_col3:
+                        if st.button(f"📝 Notes", key=f"notes_{row['Dispatch_id']}"):
+                            st.info("Add notes feature")
+                    
+                    with btn_col4:
+                        if st.button(f"✅ Complete", key=f"complete_{row['Dispatch_id']}"):
+                            st.success("Mark as complete feature")
+            
+            st.markdown("---")
+    
+    elif view_mode_tech == "📊 Table View":
+        # ============================================================
+        # TABLE VIEW
+        # ============================================================
+        
+        # Prepare display columns
+        display_cols = [
+            'Dispatch_id', 'Appointment_date', 'Appointment_start_time',
+            'City', 'Required_skill', 'Service_tier', 'Equipment_installed',
+            'Optimized_distance_km', 'Predicted_success_prob',
+            'Optimized_predicted_duration_min', 'Optimization_confidence'
+        ]
+        
+        tech_display = tech_assignments[display_cols].copy()
+        tech_display.columns = [
+            'Dispatch ID', 'Date', 'Time',
+            'City', 'Skill', 'Service Tier', 'Equipment',
+            'Distance (km)', 'Success Prob',
+            'Duration (min)', 'Confidence'
+        ]
+        
+        # Color code by success probability
+        def color_tech_rows(row):
+            success = row['Success Prob']
+            if success >= 0.7:
+                return ['background-color: #d5f4e6'] * len(row)
+            elif success >= 0.5:
+                return ['background-color: #fff9c4'] * len(row)
+            else:
+                return ['background-color: #ffe0b2'] * len(row)
+        
+        st.dataframe(
+            tech_display.style.apply(color_tech_rows, axis=1).format({
+                'Success Prob': '{:.1%}',
+                'Confidence': '{:.1%}',
+                'Distance (km)': '{:.1f}',
+                'Duration (min)': '{:.0f}'
+            }),
+            width='stretch',
+            height=500
+        )
+        
+        # Legend
+        st.markdown("""
+        **Color Legend:** 
+        🟢 Green = High Success (≥70%) | 
+        🟡 Yellow = Medium Success (50-70%) | 
+        🔴 Orange = Needs Attention (<50%)
+        """)
+    
+    else:
+        # ============================================================
+        # ROUTE OVERVIEW
+        # ============================================================
+        
+        st.markdown("### 🗺️ Route Overview & Statistics")
+        
+        # Route statistics
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("#### 📊 Route Statistics")
+            
+            cities = tech_assignments['City'].value_counts()
+            st.markdown(f"**Cities to Visit:** {len(cities)}")
+            for city, count in cities.items():
+                st.write(f"- {city}: {count} assignment(s)")
+            
+            st.markdown(f"\n**Total Travel Distance:** {tech_assignments['Optimized_distance_km'].sum():.1f} km")
+            st.markdown(f"**Average Distance per Job:** {tech_assignments['Optimized_distance_km'].mean():.1f} km")
+            st.markdown(f"**Longest Trip:** {tech_assignments['Optimized_distance_km'].max():.1f} km")
+        
+        with col2:
+            st.markdown("#### ⏱️ Time Management")
+            
+            total_time = tech_assignments['Optimized_predicted_duration_min'].sum()
+            total_travel = tech_assignments['Optimized_distance_km'].sum() * 2  # Estimate 2 min per km
+            
+            st.markdown(f"**Total Job Time:** {total_time:.0f} minutes ({(total_time/60):.1f} hours)")
+            st.markdown(f"**Estimated Travel Time:** {total_travel:.0f} minutes ({(total_travel/60):.1f} hours)")
+            st.markdown(f"**Total Working Time:** {(total_time + total_travel):.0f} minutes ({((total_time + total_travel)/60):.1f} hours)")
+            
+            # Time distribution by skill
+            st.markdown("\n**Time by Skill:**")
+            skill_time = tech_assignments.groupby('Required_skill')['Optimized_predicted_duration_min'].sum()
+            for skill, time in skill_time.items():
+                st.write(f"- {skill}: {time:.0f} min ({(time/60):.1f} hrs)")
+        
+        # Distance distribution chart
+        st.markdown("#### 📍 Distance Distribution")
+        
+        fig_distance = px.bar(
+            tech_assignments,
+            x='Dispatch_id',
+            y='Optimized_distance_km',
+            color='City',
+            title='Travel Distance by Assignment',
+            labels={'Optimized_distance_km': 'Distance (km)', 'Dispatch_id': 'Assignment ID'},
+            height=400
+        )
+        st.plotly_chart(fig_distance, width='stretch')
+        
+        # Timeline view
+        st.markdown("#### 🕐 Daily Timeline")
+        
+        timeline_data = tech_assignments.sort_values('Appointment_start_time').copy()
+        timeline_data['Job Duration (hrs)'] = timeline_data['Optimized_predicted_duration_min'] / 60
+        
+        fig_timeline = px.bar(
+            timeline_data,
+            x='Appointment_start_time',
+            y='Job Duration (hrs)',
+            color='Required_skill',
+            title='Job Duration Timeline',
+            labels={'Appointment_start_time': 'Appointment Time', 'Job Duration (hrs)': 'Duration (hours)'},
+            height=400,
+            hover_data=['Dispatch_id', 'City', 'Predicted_success_prob']
+        )
+        st.plotly_chart(fig_timeline, width='stretch')
+    
+    # ============================================================
+    # PERFORMANCE INSIGHTS & TIPS
+    # ============================================================
     st.markdown("---")
-    st.markdown("### 💡 Performance Insights")
+    st.markdown("### 💡 Performance Insights & Tips")
     
     col1, col2, col3 = st.columns(3)
     
     with col1:
         high_success = (tech_assignments['Predicted_success_prob'] >= 0.7).sum()
-        st.markdown(f"**High Probability Assignments:** {high_success} ({(high_success/len(tech_assignments)*100):.1f}%)")
+        st.markdown(f"**🎯 High Confidence Jobs:** {high_success} ({(high_success/len(tech_assignments)*100):.1f}%)")
+        
+        low_success = (tech_assignments['Predicted_success_prob'] < 0.5).sum()
+        if low_success > 0:
+            st.warning(f"⚠️ {low_success} assignment(s) may need extra preparation")
+        else:
+            st.success("✅ All assignments have good success probability")
     
     with col2:
-        avg_distance = tech_assignments['Optimized_distance_km'].mean()
-        st.markdown(f"**Average Distance per Job:** {avg_distance:.1f} km")
+        long_distance = (tech_assignments['Optimized_distance_km'] > 30).sum()
+        st.markdown(f"**🚗 Long Distance Trips:** {long_distance}")
+        
+        if long_distance > 0:
+            st.info(f"💡 Consider optimizing route planning")
+        else:
+            st.success("✅ All jobs are within reasonable distance")
     
     with col3:
         total_duration = tech_assignments['Optimized_predicted_duration_min'].sum()
-        st.markdown(f"**Total Estimated Time:** {total_duration:.0f} minutes ({(total_duration/60):.1f} hours)")
+        if total_duration > 480:  # More than 8 hours
+            st.markdown(f"**⏰ Workload:** Heavy ({(total_duration/60):.1f} hrs)")
+            st.warning("⚠️ Consider scheduling breaks")
+        elif total_duration > 360:  # 6-8 hours
+            st.markdown(f"**⏰ Workload:** Moderate ({(total_duration/60):.1f} hrs)")
+            st.info("💡 Manageable schedule")
+        else:
+            st.markdown(f"**⏰ Workload:** Light ({(total_duration/60):.1f} hrs)")
+            st.success("✅ Comfortable schedule")
     
-    # Download personal schedule
-    csv = tech_display.to_csv(index=False).encode('utf-8')
-    st.download_button(
-        label="📥 Download My Schedule (CSV)",
-        data=csv,
-        file_name=f"technician_{selected_tech}_schedule_{datetime.now().strftime('%Y%m%d')}.csv",
-        mime="text/csv"
-    )
+    # ============================================================
+    # DOWNLOAD OPTIONS
+    # ============================================================
+    st.markdown("---")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        # Download full schedule
+        schedule_csv = tech_assignments.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📥 Download Full Schedule (CSV)",
+            data=schedule_csv,
+            file_name=f"technician_{selected_tech}_schedule_{datetime.now().strftime('%Y%m%d')}.csv",
+            mime="text/csv"
+        )
+    
+    with col2:
+        # Download daily summary
+        summary_data = tech_assignments.groupby('Appointment_date').agg({
+            'Dispatch_id': 'count',
+            'Optimized_distance_km': 'sum',
+            'Optimized_predicted_duration_min': 'sum',
+            'Predicted_success_prob': 'mean'
+        }).reset_index()
+        summary_data.columns = ['Date', 'Assignments', 'Total Distance (km)', 'Total Time (min)', 'Avg Success Prob']
+        
+        summary_csv = summary_data.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📊 Download Daily Summary (CSV)",
+            data=summary_csv,
+            file_name=f"technician_{selected_tech}_summary_{datetime.now().strftime('%Y%m%d')}.csv",
+            mime="text/csv"
+        )
+    
+    with col3:
+        # Download route details
+        route_data = tech_assignments[['Dispatch_id', 'City', 'Customer_latitude', 'Customer_longitude', 
+                                       'Appointment_start_time', 'Optimized_distance_km']].copy()
+        route_csv = route_data.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="🗺️ Download Route Data (CSV)",
+            data=route_csv,
+            file_name=f"technician_{selected_tech}_route_{datetime.now().strftime('%Y%m%d')}.csv",
+            mime="text/csv"
+        )
 
 else:
     # ============================================================
