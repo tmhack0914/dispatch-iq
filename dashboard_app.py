@@ -62,7 +62,7 @@ st.markdown("### AI-Powered Technician Assignment & Optimization")
 
 # Data source indicator
 data_source = "optimized_assignments.csv" if os.path.exists('optimized_assignments.csv') else "optimized_dispatch_results.csv"
-st.caption(f"📊 Data Source: `{data_source}` | Last Updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+st.caption(f"📊 Data Source: `{data_source}` | Last Updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | 🔧 v2.1.0 (Fixed)")
 
 # View selector
 view_mode = st.radio(
