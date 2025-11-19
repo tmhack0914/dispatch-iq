@@ -404,8 +404,8 @@ else:
 
     # Assignment status filter
     assignment_status = st.sidebar.radio(
-    "Assignment Status",
-    ["All", "Assigned", "Unassigned"]
+        "Assignment Status",
+        ["All", "Assigned", "Unassigned"]
     )
 
     # Apply filters
@@ -743,67 +743,67 @@ else:
         col1, col2 = st.columns(2)
     
         with col1:
-        # Histogram of success probability improvement
-        fig_hist = px.histogram(
-            filtered_df,
-            x='Success_prob_improvement',
-            nbins=50,
-            title='Success Probability Improvement Distribution',
-            labels={'Success_prob_improvement': 'Improvement', 'count': 'Number of Dispatches'},
-            color_discrete_sequence=['#3498db']
-        )
-        fig_hist.add_vline(x=0, line_dash="dash", line_color="red")
-        st.plotly_chart(fig_hist, width='stretch')
-    
+            # Histogram of success probability improvement
+            fig_hist = px.histogram(
+                filtered_df,
+                x='Success_prob_improvement',
+                nbins=50,
+                title='Success Probability Improvement Distribution',
+                labels={'Success_prob_improvement': 'Improvement', 'count': 'Number of Dispatches'},
+                color_discrete_sequence=['#3498db']
+            )
+            fig_hist.add_vline(x=0, line_dash="dash", line_color="red")
+            st.plotly_chart(fig_hist, width='stretch')
+        
         with col2:
-        # Success probability by skill
-        skill_success = filtered_df.groupby('Required_skill').agg({
-            'Initial_success_prob': 'mean',
-            'Predicted_success_prob': 'mean'
-        }).reset_index()
+            # Success probability by skill
+            skill_success = filtered_df.groupby('Required_skill').agg({
+                'Initial_success_prob': 'mean',
+                'Predicted_success_prob': 'mean'
+            }).reset_index()
+            
+            fig_skill = go.Figure()
+            fig_skill.add_trace(go.Bar(
+                x=skill_success['Required_skill'],
+                y=skill_success['Initial_success_prob'],
+                name='Initial',
+                marker_color='lightblue'
+            ))
+            fig_skill.add_trace(go.Bar(
+                x=skill_success['Required_skill'],
+                y=skill_success['Predicted_success_prob'],
+                name='Optimized',
+                marker_color='lightgreen'
+            ))
+            
+            fig_skill.update_layout(
+                title='Average Success Probability by Skill',
+                xaxis_title='Required Skill',
+                yaxis_title='Avg Success Probability',
+                barmode='group',
+                height=400,
+                xaxis={'tickangle': -45}
+            )
+            
+            st.plotly_chart(fig_skill, width='stretch')
         
-        fig_skill = go.Figure()
-        fig_skill.add_trace(go.Bar(
-            x=skill_success['Required_skill'],
-            y=skill_success['Initial_success_prob'],
-            name='Initial',
-            marker_color='lightblue'
-        ))
-        fig_skill.add_trace(go.Bar(
-            x=skill_success['Required_skill'],
-            y=skill_success['Predicted_success_prob'],
-            name='Optimized',
-            marker_color='lightgreen'
-        ))
-        
-        fig_skill.update_layout(
-            title='Average Success Probability by Skill',
-            xaxis_title='Required Skill',
-            yaxis_title='Avg Success Probability',
-            barmode='group',
-            height=400,
-            xaxis={'tickangle': -45}
-        )
-        
-        st.plotly_chart(fig_skill, width='stretch')
-    
         # Scatter plot: Success vs Distance
         st.subheader("Success Probability vs Distance")
-    
+        
         fig_scatter = px.scatter(
-        filtered_df,
-        x='Optimized_distance_km',
-        y='Predicted_success_prob',
-        color='Fallback_level',
-        size='Optimized_workload_ratio',
-        hover_data=['Dispatch_id', 'Required_skill', 'City'],
-        title='Success Probability vs Distance (size = workload)',
-        labels={
-            'Optimized_distance_km': 'Distance (km)',
-            'Predicted_success_prob': 'Success Probability'
-        }
+            filtered_df,
+            x='Optimized_distance_km',
+            y='Predicted_success_prob',
+            color='Fallback_level',
+            size='Optimized_workload_ratio',
+            hover_data=['Dispatch_id', 'Required_skill', 'City'],
+            title='Success Probability vs Distance (size = workload)',
+            labels={
+                'Optimized_distance_km': 'Distance (km)',
+                'Predicted_success_prob': 'Success Probability'
+            }
         )
-    
+        
         st.plotly_chart(fig_scatter, width='stretch')
 
         # TAB 3: Distance Analysis
@@ -813,61 +813,61 @@ else:
         col1, col2 = st.columns(2)
     
         with col1:
-        # Distance change histogram
-        fig_dist_change = px.histogram(
-            filtered_df,
-            x='Distance_change_km',
-            nbins=50,
-            title='Distance Change Distribution',
-            labels={'Distance_change_km': 'Distance Change (km)', 'count': 'Number of Dispatches'},
-            color_discrete_sequence=['#e67e22']
-        )
-        fig_dist_change.add_vline(x=0, line_dash="dash", line_color="red")
-        st.plotly_chart(fig_dist_change, width='stretch')
+            # Distance change histogram
+            fig_dist_change = px.histogram(
+                filtered_df,
+                x='Distance_change_km',
+                nbins=50,
+                title='Distance Change Distribution',
+                labels={'Distance_change_km': 'Distance Change (km)', 'count': 'Number of Dispatches'},
+                color_discrete_sequence=['#e67e22']
+            )
+            fig_dist_change.add_vline(x=0, line_dash="dash", line_color="red")
+            st.plotly_chart(fig_dist_change, width='stretch')
+            
+            # Distance statistics
+            st.markdown("**Distance Statistics:**")
+            total_initial = filtered_df['Initial_distance_km'].sum()
+            total_optimized = filtered_df['Optimized_distance_km'].sum()
+            total_saved = total_initial - total_optimized
+            
+            st.write(f"- Total Initial Distance: **{total_initial:,.0f} km**")
+            st.write(f"- Total Optimized Distance: **{total_optimized:,.0f} km**")
+            st.write(f"- Total Distance Saved: **{total_saved:,.0f} km** ({(total_saved/total_initial*100):.1f}%)")
+            st.write(f"- Estimated Fuel Savings: **${abs(total_saved * 0.50):,.0f}**")
+            st.write(f"- Estimated Time Saved: **{abs(total_saved * 2):,.0f} minutes**")
         
-        # Distance statistics
-        st.markdown("**Distance Statistics:**")
-        total_initial = filtered_df['Initial_distance_km'].sum()
-        total_optimized = filtered_df['Optimized_distance_km'].sum()
-        total_saved = total_initial - total_optimized
-        
-        st.write(f"- Total Initial Distance: **{total_initial:,.0f} km**")
-        st.write(f"- Total Optimized Distance: **{total_optimized:,.0f} km**")
-        st.write(f"- Total Distance Saved: **{total_saved:,.0f} km** ({(total_saved/total_initial*100):.1f}%)")
-        st.write(f"- Estimated Fuel Savings: **${abs(total_saved * 0.50):,.0f}**")
-        st.write(f"- Estimated Time Saved: **{abs(total_saved * 2):,.0f} minutes**")
-    
         with col2:
-        # Distance by city
-        city_distance = filtered_df.groupby('City').agg({
-            'Initial_distance_km': 'mean',
-            'Optimized_distance_km': 'mean'
-        }).reset_index()
-        
-        fig_city = go.Figure()
-        fig_city.add_trace(go.Bar(
-            x=city_distance['City'],
-            y=city_distance['Initial_distance_km'],
-            name='Initial',
-            marker_color='salmon'
-        ))
-        fig_city.add_trace(go.Bar(
-            x=city_distance['City'],
-            y=city_distance['Optimized_distance_km'],
-            name='Optimized',
-            marker_color='lightcoral'
-        ))
-        
-        fig_city.update_layout(
-            title='Average Distance by City',
-            xaxis_title='City',
-            yaxis_title='Average Distance (km)',
-            barmode='group',
-            height=400,
-            xaxis={'tickangle': -45}
-        )
-        
-        st.plotly_chart(fig_city, width='stretch')
+            # Distance by city
+            city_distance = filtered_df.groupby('City').agg({
+                'Initial_distance_km': 'mean',
+                'Optimized_distance_km': 'mean'
+            }).reset_index()
+            
+            fig_city = go.Figure()
+            fig_city.add_trace(go.Bar(
+                x=city_distance['City'],
+                y=city_distance['Initial_distance_km'],
+                name='Initial',
+                marker_color='salmon'
+            ))
+            fig_city.add_trace(go.Bar(
+                x=city_distance['City'],
+                y=city_distance['Optimized_distance_km'],
+                name='Optimized',
+                marker_color='lightcoral'
+            ))
+            
+            fig_city.update_layout(
+                title='Average Distance by City',
+                xaxis_title='City',
+                yaxis_title='Average Distance (km)',
+                barmode='group',
+                height=400,
+                xaxis={'tickangle': -45}
+            )
+            
+            st.plotly_chart(fig_city, width='stretch')
 
         # TAB 4: Workload Balance
     with tab4:
@@ -876,69 +876,69 @@ else:
         col1, col2 = st.columns(2)
     
         with col1:
-        # Workload distribution
-        fig_workload = go.Figure()
+            # Workload distribution
+            fig_workload = go.Figure()
+            
+            fig_workload.add_trace(go.Histogram(
+                x=filtered_df['Initial_workload_ratio'],
+                name='Initial',
+                opacity=0.7,
+                marker_color='lightblue',
+                nbinsx=30
+            ))
+            
+            fig_workload.add_trace(go.Histogram(
+                x=filtered_df['Optimized_workload_ratio'],
+                name='Optimized',
+                opacity=0.7,
+                marker_color='lightgreen',
+                nbinsx=30
+            ))
+            
+            fig_workload.add_vline(x=0.8, line_dash="dash", line_color="orange", 
+                                   annotation_text="80% capacity")
+            fig_workload.add_vline(x=1.0, line_dash="dash", line_color="red", 
+                                   annotation_text="100% capacity")
+            
+            fig_workload.update_layout(
+                title='Workload Ratio Distribution',
+                xaxis_title='Workload Ratio',
+                yaxis_title='Number of Assignments',
+                barmode='overlay',
+                height=400
+            )
+            
+            st.plotly_chart(fig_workload, width='stretch')
         
-        fig_workload.add_trace(go.Histogram(
-            x=filtered_df['Initial_workload_ratio'],
-            name='Initial',
-            opacity=0.7,
-            marker_color='lightblue',
-            nbinsx=30
-        ))
-        
-        fig_workload.add_trace(go.Histogram(
-            x=filtered_df['Optimized_workload_ratio'],
-            name='Optimized',
-            opacity=0.7,
-            marker_color='lightgreen',
-            nbinsx=30
-        ))
-        
-        fig_workload.add_vline(x=0.8, line_dash="dash", line_color="orange", 
-                               annotation_text="80% capacity")
-        fig_workload.add_vline(x=1.0, line_dash="dash", line_color="red", 
-                               annotation_text="100% capacity")
-        
-        fig_workload.update_layout(
-            title='Workload Ratio Distribution',
-            xaxis_title='Workload Ratio',
-            yaxis_title='Number of Assignments',
-            barmode='overlay',
-            height=400
-        )
-        
-        st.plotly_chart(fig_workload, width='stretch')
-    
         with col2:
-        # Workload statistics
-        st.markdown("**Workload Statistics:**")
-        
-        initial_over_80 = (filtered_df['Initial_workload_ratio'] > 0.8).sum()
-        optimized_over_80 = (filtered_df['Optimized_workload_ratio'] > 0.8).sum()
-        
-        initial_over_100 = (filtered_df['Initial_workload_ratio'] > 1.0).sum()
-        optimized_over_100 = (filtered_df['Optimized_workload_ratio'] > 1.0).sum()
-        
-        st.write(f"**Initial Assignments:**")
-        st.write(f"- Over 80% capacity: **{initial_over_80}** ({(initial_over_80/len(filtered_df)*100):.1f}%)")
-        st.write(f"- Over 100% capacity: **{initial_over_100}** ({(initial_over_100/len(filtered_df)*100):.1f}%)")
-        
-        st.write(f"\n**Optimized Assignments:**")
-        st.write(f"- Over 80% capacity: **{optimized_over_80}** ({(optimized_over_80/len(filtered_df)*100):.1f}%)")
-        st.write(f"- Over 100% capacity: **{optimized_over_100}** ({(optimized_over_100/len(filtered_df)*100):.1f}%)")
-        
-        # Workload change
-        fig_workload_change = px.histogram(
-            filtered_df,
-            x='Workload_ratio_change',
-            nbins=50,
-            title='Workload Ratio Change',
-            labels={'Workload_ratio_change': 'Workload Change', 'count': 'Count'},
-            color_discrete_sequence=['#9b59b6']
-        )
-        fig_workload_change.add_vline(x=0, line_dash="dash", line_color="red")
-        st.plotly_chart(fig_workload_change, width='stretch')
+            # Workload statistics
+            st.markdown("**Workload Statistics:**")
+            
+            initial_over_80 = (filtered_df['Initial_workload_ratio'] > 0.8).sum()
+            optimized_over_80 = (filtered_df['Optimized_workload_ratio'] > 0.8).sum()
+            
+            initial_over_100 = (filtered_df['Initial_workload_ratio'] > 1.0).sum()
+            optimized_over_100 = (filtered_df['Optimized_workload_ratio'] > 1.0).sum()
+            
+            st.write(f"**Initial Assignments:**")
+            st.write(f"- Over 80% capacity: **{initial_over_80}** ({(initial_over_80/len(filtered_df)*100):.1f}%)")
+            st.write(f"- Over 100% capacity: **{initial_over_100}** ({(initial_over_100/len(filtered_df)*100):.1f}%)")
+            
+            st.write(f"\n**Optimized Assignments:**")
+            st.write(f"- Over 80% capacity: **{optimized_over_80}** ({(optimized_over_80/len(filtered_df)*100):.1f}%)")
+            st.write(f"- Over 100% capacity: **{optimized_over_100}** ({(optimized_over_100/len(filtered_df)*100):.1f}%)")
+            
+            # Workload change
+            fig_workload_change = px.histogram(
+                filtered_df,
+                x='Workload_ratio_change',
+                nbins=50,
+                title='Workload Ratio Change',
+                labels={'Workload_ratio_change': 'Workload Change', 'count': 'Count'},
+                color_discrete_sequence=['#9b59b6']
+            )
+            fig_workload_change.add_vline(x=0, line_dash="dash", line_color="red")
+            st.plotly_chart(fig_workload_change, width='stretch')
 
         # TAB 5: Individual Dispatches
     with tab5:
@@ -948,50 +948,50 @@ else:
         search_id = st.text_input("Search by Dispatch ID", "")
     
         if search_id:
-        filtered_df = filtered_df[filtered_df['Dispatch_id'].astype(str).str.contains(search_id)]
-    
+            filtered_df = filtered_df[filtered_df['Dispatch_id'].astype(str).str.contains(search_id)]
+        
         # Display mode
         display_mode = st.radio(
-        "Display Mode",
-        ["Show All Columns", "Show Key Metrics Only"],
-        horizontal=True
+            "Display Mode",
+            ["Show All Columns", "Show Key Metrics Only"],
+            horizontal=True
         )
     
         if display_mode == "Show Key Metrics Only":
-        columns_to_show = [
-            'Dispatch_id', 'City', 'Required_skill',
-            'Assigned_technician_id', 'Optimized_technician_id',
-            'Initial_success_prob', 'Predicted_success_prob', 'Success_prob_improvement',
-            'Initial_distance_km', 'Optimized_distance_km', 'Distance_change_km',
-            'Fallback_level'
-        ]
-        display_df = filtered_df[columns_to_show]
+            columns_to_show = [
+                'Dispatch_id', 'City', 'Required_skill',
+                'Assigned_technician_id', 'Optimized_technician_id',
+                'Initial_success_prob', 'Predicted_success_prob', 'Success_prob_improvement',
+                'Initial_distance_km', 'Optimized_distance_km', 'Distance_change_km',
+                'Fallback_level'
+            ]
+            display_df = filtered_df[columns_to_show]
         else:
-        display_df = filtered_df
+            display_df = filtered_df
     
         # Color code improvements
         def highlight_improvements(row):
-        if row['Success_prob_improvement'] > 0:
-            return ['background-color: #d5f4e6'] * len(row)
-        elif row['Success_prob_improvement'] < 0:
-            return ['background-color: #fadbd8'] * len(row)
-        else:
-            return [''] * len(row)
-    
+            if row['Success_prob_improvement'] > 0:
+                return ['background-color: #d5f4e6'] * len(row)
+            elif row['Success_prob_improvement'] < 0:
+                return ['background-color: #fadbd8'] * len(row)
+            else:
+                return [''] * len(row)
+        
         # Display dataframe
         st.dataframe(
-        display_df.style.apply(highlight_improvements, axis=1),
-        width='stretch',
-        height=400
+            display_df.style.apply(highlight_improvements, axis=1),
+            width='stretch',
+            height=400
         )
     
         # Download filtered data
         csv = display_df.to_csv(index=False).encode('utf-8')
         st.download_button(
-        label="📥 Download Filtered Data as CSV",
-        data=csv,
-        file_name=f"filtered_dispatches_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-        mime="text/csv"
+            label="📥 Download Filtered Data as CSV",
+            data=csv,
+            file_name=f"filtered_dispatches_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+            mime="text/csv"
         )
 
         # ============================================================
@@ -1003,36 +1003,36 @@ else:
         col1, col2 = st.columns(2)
 
         with col1:
-        # Fallback level distribution
-        fallback_counts = filtered_df['Fallback_level'].value_counts()
-        
-        fig_fallback = px.pie(
-            values=fallback_counts.values,
-            names=fallback_counts.index,
-            title='Fallback Level Distribution',
-            hole=0.3
-        )
-        
-        st.plotly_chart(fig_fallback, width='stretch')
+            # Fallback level distribution
+            fallback_counts = filtered_df['Fallback_level'].value_counts()
+            
+            fig_fallback = px.pie(
+                values=fallback_counts.values,
+                names=fallback_counts.index,
+                title='Fallback Level Distribution',
+                hole=0.3
+            )
+            
+            st.plotly_chart(fig_fallback, width='stretch')
 
         with col2:
-        # Success probability by fallback level
-        fallback_success = filtered_df.groupby('Fallback_level')['Predicted_success_prob'].agg(['mean', 'count']).reset_index()
-        
-        fig_fallback_success = px.bar(
-            fallback_success,
-            x='Fallback_level',
-            y='mean',
-            title='Average Success Probability by Fallback Level',
-            labels={'mean': 'Avg Success Probability', 'Fallback_level': 'Fallback Level'},
-            text='count',
-            color='mean',
-            color_continuous_scale='RdYlGn'
-        )
-        
-        fig_fallback_success.update_traces(texttemplate='n=%{text}', textposition='outside')
-        
-        st.plotly_chart(fig_fallback_success, width='stretch')
+            # Success probability by fallback level
+            fallback_success = filtered_df.groupby('Fallback_level')['Predicted_success_prob'].agg(['mean', 'count']).reset_index()
+            
+            fig_fallback_success = px.bar(
+                fallback_success,
+                x='Fallback_level',
+                y='mean',
+                title='Average Success Probability by Fallback Level',
+                labels={'mean': 'Avg Success Probability', 'Fallback_level': 'Fallback Level'},
+                text='count',
+                color='mean',
+                color_continuous_scale='RdYlGn'
+            )
+            
+            fig_fallback_success.update_traces(texttemplate='n=%{text}', textposition='outside')
+            
+            st.plotly_chart(fig_fallback_success, width='stretch')
 
         # ============================================================
         # SYSTEM INFORMATION
@@ -1043,37 +1043,37 @@ else:
         col1, col2, col3 = st.columns(3)
 
         with col1:
-        st.markdown("**Assignment Mode:**")
-        # Check if ml_based is in fallback levels
-        if 'ml_based' in df['Fallback_level'].unique():
-            st.success("🤖 ML-Based Assignment")
-            st.write("Evaluates ALL available technicians using ML model")
-        else:
-            st.info("📋 Legacy Cascading Fallback")
+            st.markdown("**Assignment Mode:**")
+            # Check if ml_based is in fallback levels
+            if 'ml_based' in df['Fallback_level'].unique():
+                st.success("🤖 ML-Based Assignment")
+                st.write("Evaluates ALL available technicians using ML model")
+            else:
+                st.info("📋 Legacy Cascading Fallback")
 
         with col2:
-        st.markdown("**Optimization Timestamp:**")
-        if 'Optimization_timestamp' in df.columns:
-            timestamp = df['Optimization_timestamp'].iloc[0]
-            st.write(f"🕐 {timestamp}")
-        else:
-            st.write("N/A")
+            st.markdown("**Optimization Timestamp:**")
+            if 'Optimization_timestamp' in df.columns:
+                timestamp = df['Optimization_timestamp'].iloc[0]
+                st.write(f"🕐 {timestamp}")
+            else:
+                st.write("N/A")
 
         with col3:
-        st.markdown("**Data Summary:**")
-        st.write(f"- Total Dispatches: **{len(df)}**")
-        st.write(f"- Unique Cities: **{df['City'].nunique()}**")
-        st.write(f"- Unique Skills: **{df['Required_skill'].nunique()}**")
+            st.markdown("**Data Summary:**")
+            st.write(f"- Total Dispatches: **{len(df)}**")
+            st.write(f"- Unique Cities: **{df['City'].nunique()}**")
+            st.write(f"- Unique Skills: **{df['Required_skill'].nunique()}**")
 
         # Footer
         st.markdown("---")
         st.markdown(
-        """
-        <div style='text-align: center; color: #7f8c8d; padding: 20px;'>
-            <p>Smart Dispatch Optimization Dashboard v1.0</p>
-            <p>Powered by ML-Based Assignment System | Built with Streamlit</p>
-        </div>
-        """,
-        unsafe_allow_html=True
+            """
+            <div style='text-align: center; color: #7f8c8d; padding: 20px;'>
+                <p>Smart Dispatch Optimization Dashboard v1.0</p>
+                <p>Powered by ML-Based Assignment System | Built with Streamlit</p>
+            </div>
+            """,
+            unsafe_allow_html=True
         )
 
