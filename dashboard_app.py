@@ -412,18 +412,18 @@ else:
     filtered_df = df.copy()
 
     if selected_city != 'All':
-    filtered_df = filtered_df[filtered_df['City'] == selected_city]
+        filtered_df = filtered_df[filtered_df['City'] == selected_city]
 
     if selected_skill != 'All':
-    filtered_df = filtered_df[filtered_df['Required_skill'] == selected_skill]
+        filtered_df = filtered_df[filtered_df['Required_skill'] == selected_skill]
 
     if selected_fallback != 'All':
-    filtered_df = filtered_df[filtered_df['Fallback_level'] == selected_fallback]
+        filtered_df = filtered_df[filtered_df['Fallback_level'] == selected_fallback]
 
     if assignment_status == "Assigned":
-    filtered_df = filtered_df[filtered_df['Optimized_technician_id'].notna()]
+        filtered_df = filtered_df[filtered_df['Optimized_technician_id'].notna()]
     elif assignment_status == "Unassigned":
-    filtered_df = filtered_df[filtered_df['Optimized_technician_id'].isna()]
+        filtered_df = filtered_df[filtered_df['Optimized_technician_id'].isna()]
 
     # Display filter info
     st.sidebar.markdown("---")
@@ -432,8 +432,8 @@ else:
 
     # Main dashboard content
     if len(filtered_df) == 0:
-    st.warning("No dispatches match the selected filters.")
-    st.stop()
+        st.warning("No dispatches match the selected filters.")
+        st.stop()
 
     # ============================================================
     # INITIAL VS OPTIMIZED COMPARISON (HERO SECTION)
