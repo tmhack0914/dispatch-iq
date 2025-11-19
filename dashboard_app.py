@@ -492,19 +492,19 @@ if view_mode == "📋 Assignments (Manager)":
         st.metric("Total Dispatches", len(filtered_assignments))
     
     with col2:
-        assigned = filtered_assignments['Optimized_technician_id'].notna().sum()
+        assigned = int(filtered_assignments['Optimized_technician_id'].notna().sum())
         st.metric("Assigned", assigned, f"{(assigned/len(filtered_assignments)*100):.1f}%")
     
     with col3:
-        unassigned = filtered_assignments['Optimized_technician_id'].isna().sum()
+        unassigned = int(filtered_assignments['Optimized_technician_id'].isna().sum())
         st.metric("Unassigned", unassigned, delta_color="inverse" if unassigned > 0 else "off")
     
     with col4:
-        avg_success = filtered_assignments['Predicted_success_prob'].mean()
+        avg_success = float(filtered_assignments['Predicted_success_prob'].mean())
         st.metric("Avg Success Prob", f"{avg_success:.3f}")
     
     with col5:
-        avg_distance = filtered_assignments['Optimized_distance_km'].mean()
+        avg_distance = float(filtered_assignments['Optimized_distance_km'].mean())
         st.metric("Avg Distance", f"{avg_distance:.1f} km")
     
     st.markdown("---")
@@ -660,21 +660,21 @@ elif view_mode == "👷 Technician View":
         st.metric("📋 Total Jobs", len(tech_assignments))
     
     with col2:
-        avg_success = tech_assignments['Predicted_success_prob'].mean()
+        avg_success = float(tech_assignments['Predicted_success_prob'].mean())
         success_color = "🟢" if avg_success >= 0.7 else "🟡" if avg_success >= 0.5 else "🔴"
         st.metric("🎯 Avg Success", f"{avg_success:.1%}", f"{success_color}")
     
     with col3:
-        total_distance = tech_assignments['Optimized_distance_km'].sum()
+        total_distance = float(tech_assignments['Optimized_distance_km'].sum())
         st.metric("🚗 Total Distance", f"{total_distance:.1f} km")
     
     with col4:
-        total_duration = tech_assignments['Optimized_predicted_duration_min'].sum()
+        total_duration = float(tech_assignments['Optimized_predicted_duration_min'].sum())
         hours = total_duration / 60
         st.metric("⏱️ Est. Time", f"{hours:.1f} hrs")
     
     with col5:
-        avg_workload = tech_assignments['Optimized_workload_ratio'].mean()
+        avg_workload = float(tech_assignments['Optimized_workload_ratio'].mean())
         workload_emoji = "🔴" if avg_workload > 0.8 else "🟡" if avg_workload > 0.5 else "🟢"
         st.metric("📊 Workload", f"{avg_workload:.0%}", f"{workload_emoji}")
     
@@ -889,15 +889,15 @@ elif view_mode == "👷 Technician View":
             for city, count in cities.items():
                 st.write(f"- {city}: {count} assignment(s)")
             
-            st.markdown(f"\n**Total Travel Distance:** {tech_assignments['Optimized_distance_km'].sum():.1f} km")
-            st.markdown(f"**Average Distance per Job:** {tech_assignments['Optimized_distance_km'].mean():.1f} km")
-            st.markdown(f"**Longest Trip:** {tech_assignments['Optimized_distance_km'].max():.1f} km")
+            st.markdown(f"\n**Total Travel Distance:** {float(tech_assignments['Optimized_distance_km'].sum()):.1f} km")
+            st.markdown(f"**Average Distance per Job:** {float(tech_assignments['Optimized_distance_km'].mean()):.1f} km")
+            st.markdown(f"**Longest Trip:** {float(tech_assignments['Optimized_distance_km'].max()):.1f} km")
         
         with col2:
             st.markdown("#### ⏱️ Time Management")
             
-            total_time = tech_assignments['Optimized_predicted_duration_min'].sum()
-            total_travel = tech_assignments['Optimized_distance_km'].sum() * 2  # Estimate 2 min per km
+            total_time = float(tech_assignments['Optimized_predicted_duration_min'].sum())
+            total_travel = float(tech_assignments['Optimized_distance_km'].sum()) * 2  # Estimate 2 min per km
             
             st.markdown(f"**Total Job Time:** {total_time:.0f} minutes ({(total_time/60):.1f} hours)")
             st.markdown(f"**Estimated Travel Time:** {total_travel:.0f} minutes ({(total_travel/60):.1f} hours)")
@@ -950,17 +950,17 @@ elif view_mode == "👷 Technician View":
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        high_success = (tech_assignments['Predicted_success_prob'] >= 0.7).sum()
+        high_success = int((tech_assignments['Predicted_success_prob'] >= 0.7).sum())
         st.markdown(f"**🎯 High Confidence Jobs:** {high_success} ({(high_success/len(tech_assignments)*100):.1f}%)")
         
-        low_success = (tech_assignments['Predicted_success_prob'] < 0.5).sum()
+        low_success = int((tech_assignments['Predicted_success_prob'] < 0.5).sum())
         if low_success > 0:
             st.warning(f"⚠️ {low_success} assignment(s) may need extra preparation")
         else:
             st.success("✅ All assignments have good success probability")
     
     with col2:
-        long_distance = (tech_assignments['Optimized_distance_km'] > 30).sum()
+        long_distance = int((tech_assignments['Optimized_distance_km'] > 30).sum())
         st.markdown(f"**🚗 Long Distance Trips:** {long_distance}")
         
         if long_distance > 0:
@@ -969,7 +969,7 @@ elif view_mode == "👷 Technician View":
             st.success("✅ All jobs are within reasonable distance")
     
     with col3:
-        total_duration = tech_assignments['Optimized_predicted_duration_min'].sum()
+        total_duration = float(tech_assignments['Optimized_predicted_duration_min'].sum())
         if total_duration > 480:  # More than 8 hours
             st.markdown(f"**⏰ Workload:** Heavy ({(total_duration/60):.1f} hrs)")
             st.warning("⚠️ Consider scheduling breaks")
@@ -1341,9 +1341,9 @@ else:
 
     with col1:
         st.markdown("### 🎯 Success Distribution")
-        high_success = (filtered_df['Predicted_success_prob'] >= 0.7).sum() if 'Predicted_success_prob' in filtered_df.columns else 0
-        medium_success = ((filtered_df['Predicted_success_prob'] >= 0.5) & (filtered_df['Predicted_success_prob'] < 0.7)).sum() if 'Predicted_success_prob' in filtered_df.columns else 0
-        low_success = (filtered_df['Predicted_success_prob'] < 0.5).sum() if 'Predicted_success_prob' in filtered_df.columns else 0
+        high_success = int((filtered_df['Predicted_success_prob'] >= 0.7).sum() if 'Predicted_success_prob' in filtered_df.columns else 0)
+        medium_success = int(((filtered_df['Predicted_success_prob'] >= 0.5) & (filtered_df['Predicted_success_prob'] < 0.7)).sum() if 'Predicted_success_prob' in filtered_df.columns else 0)
+        low_success = int((filtered_df['Predicted_success_prob'] < 0.5).sum() if 'Predicted_success_prob' in filtered_df.columns else 0)
         
         st.markdown(f"""
         - 🟢 **High (≥70%)**: {high_success} ({(high_success/total_dispatches*100):.1f}%)
@@ -1353,8 +1353,8 @@ else:
 
     with col2:
         st.markdown("### 🎖️ Skill Match Quality")
-        perfect_match = (filtered_df['Skill_match_score'] == 1).sum() if 'Skill_match_score' in filtered_df.columns else 0
-        partial_match = (filtered_df['Skill_match_score'] == 0).sum() if 'Skill_match_score' in filtered_df.columns else 0
+        perfect_match = int((filtered_df['Skill_match_score'] == 1).sum() if 'Skill_match_score' in filtered_df.columns else 0)
+        partial_match = int((filtered_df['Skill_match_score'] == 0).sum() if 'Skill_match_score' in filtered_df.columns else 0)
         
         st.markdown(f"""
         - ✅ **Perfect Match**: {perfect_match} ({(perfect_match/assigned_dispatches*100 if assigned_dispatches > 0 else 0):.1f}%)
@@ -1364,8 +1364,8 @@ else:
 
     with col3:
         st.markdown("### 🚗 Travel Efficiency")
-        total_distance = filtered_df['Optimized_distance_km'].sum() if 'Optimized_distance_km' in filtered_df.columns else 0
-        avg_distance = filtered_df['Optimized_distance_km'].mean() if 'Optimized_distance_km' in filtered_df.columns else 0
+        total_distance = float(filtered_df['Optimized_distance_km'].sum() if 'Optimized_distance_km' in filtered_df.columns else 0)
+        avg_distance = float(filtered_df['Optimized_distance_km'].mean() if 'Optimized_distance_km' in filtered_df.columns else 0)
         
         st.markdown(f"""
         - 📍 **Total Distance**: {total_distance:.0f} km
@@ -1375,9 +1375,9 @@ else:
 
     with col4:
         st.markdown("### ⚖️ Workload Balance")
-        avg_workload = filtered_df['Optimized_workload_ratio'].mean() if 'Optimized_workload_ratio' in filtered_df.columns else 0
-        over_capacity = (filtered_df['Optimized_workload_ratio'] > 1.0).sum() if 'Optimized_workload_ratio' in filtered_df.columns else 0
-        high_load = ((filtered_df['Optimized_workload_ratio'] > 0.8) & (filtered_df['Optimized_workload_ratio'] <= 1.0)).sum() if 'Optimized_workload_ratio' in filtered_df.columns else 0
+        avg_workload = float(filtered_df['Optimized_workload_ratio'].mean() if 'Optimized_workload_ratio' in filtered_df.columns else 0)
+        over_capacity = int((filtered_df['Optimized_workload_ratio'] > 1.0).sum() if 'Optimized_workload_ratio' in filtered_df.columns else 0)
+        high_load = int(((filtered_df['Optimized_workload_ratio'] > 0.8) & (filtered_df['Optimized_workload_ratio'] <= 1.0)).sum() if 'Optimized_workload_ratio' in filtered_df.columns else 0)
         
         st.markdown(f"""
         - 📊 **Avg Workload**: {avg_workload:.1%}
@@ -1535,7 +1535,7 @@ else:
         if warning_rate < 5:
             insights.append("✅ Very few warnings (<5%)")
         if 'Skill_match_score' in filtered_df.columns:
-            perfect_match_rate = (filtered_df['Skill_match_score'] == 1).sum() / assigned_dispatches * 100 if assigned_dispatches > 0 else 0
+            perfect_match_rate = int((filtered_df['Skill_match_score'] == 1).sum()) / assigned_dispatches * 100 if assigned_dispatches > 0 else 0
             if perfect_match_rate > 80:
                 insights.append("🎖️ Strong skill matching (>80%)")
         
@@ -1591,19 +1591,19 @@ else:
     col1, col2, col3, col4, col5 = st.columns(5)
 
     # Calculate metrics
-    assigned_count = filtered_df['Optimized_technician_id'].notna().sum()
-    unassigned_count = filtered_df['Optimized_technician_id'].isna().sum()
+    assigned_count = int(filtered_df['Optimized_technician_id'].notna().sum())
+    unassigned_count = int(filtered_df['Optimized_technician_id'].isna().sum())
     assignment_rate = (assigned_count / len(filtered_df)) * 100
 
-    avg_initial_success = filtered_df['Initial_success_prob'].mean()
-    avg_optimized_success = filtered_df['Predicted_success_prob'].mean()
+    avg_initial_success = float(filtered_df['Initial_success_prob'].mean())
+    avg_optimized_success = float(filtered_df['Predicted_success_prob'].mean())
     success_improvement = avg_optimized_success - avg_initial_success
 
-    avg_initial_distance = filtered_df['Initial_distance_km'].mean()
-    avg_optimized_distance = filtered_df['Optimized_distance_km'].mean()
+    avg_initial_distance = float(filtered_df['Initial_distance_km'].mean())
+    avg_optimized_distance = float(filtered_df['Optimized_distance_km'].mean())
     distance_reduction = avg_initial_distance - avg_optimized_distance
 
-    total_distance_saved = filtered_df['Distance_change_km'].sum()
+    total_distance_saved = float(filtered_df['Distance_change_km'].sum())
     fuel_savings = abs(total_distance_saved) * 0.50  # $0.50 per km
 
     with col1:
@@ -1637,7 +1637,7 @@ else:
         )
 
     with col5:
-        improvement_rate = (filtered_df['Success_prob_improvement'] > 0).sum()
+        improvement_rate = int((filtered_df['Success_prob_improvement'] > 0).sum())
         improvement_pct = (improvement_rate / len(filtered_df)) * 100
         st.metric(
             "Improved Assignments",
@@ -1722,9 +1722,9 @@ else:
         # Improvement breakdown
         st.subheader("Improvement Breakdown")
         
-        improved = (filtered_df['Success_prob_improvement'] > 0).sum()
-        worse = (filtered_df['Success_prob_improvement'] < 0).sum()
-        unchanged = (filtered_df['Success_prob_improvement'] == 0).sum()
+        improved = int((filtered_df['Success_prob_improvement'] > 0).sum())
+        worse = int((filtered_df['Success_prob_improvement'] < 0).sum())
+        unchanged = int((filtered_df['Success_prob_improvement'] == 0).sum())
         
         fig_pie = go.Figure(data=[go.Pie(
             labels=['Improved', 'Worse', 'Unchanged'],
@@ -1831,8 +1831,8 @@ else:
             
             # Distance statistics
             st.markdown("**Distance Statistics:**")
-            total_initial = filtered_df['Initial_distance_km'].sum()
-            total_optimized = filtered_df['Optimized_distance_km'].sum()
+            total_initial = float(filtered_df['Initial_distance_km'].sum())
+            total_optimized = float(filtered_df['Optimized_distance_km'].sum())
             total_saved = total_initial - total_optimized
             
             st.write(f"- Total Initial Distance: **{total_initial:,.0f} km**")
@@ -1918,11 +1918,11 @@ else:
             # Workload statistics
             st.markdown("**Workload Statistics:**")
             
-            initial_over_80 = (filtered_df['Initial_workload_ratio'] > 0.8).sum()
-            optimized_over_80 = (filtered_df['Optimized_workload_ratio'] > 0.8).sum()
+            initial_over_80 = int((filtered_df['Initial_workload_ratio'] > 0.8).sum())
+            optimized_over_80 = int((filtered_df['Optimized_workload_ratio'] > 0.8).sum())
             
-            initial_over_100 = (filtered_df['Initial_workload_ratio'] > 1.0).sum()
-            optimized_over_100 = (filtered_df['Optimized_workload_ratio'] > 1.0).sum()
+            initial_over_100 = int((filtered_df['Initial_workload_ratio'] > 1.0).sum())
+            optimized_over_100 = int((filtered_df['Optimized_workload_ratio'] > 1.0).sum())
             
             st.write(f"**Initial Assignments:**")
             st.write(f"- Over 80% capacity: **{initial_over_80}** ({(initial_over_80/len(filtered_df)*100):.1f}%)")
