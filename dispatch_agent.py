@@ -47,10 +47,10 @@ ENABLE_ENHANCED_SUCCESS_MODEL = True  # Was False - Now enabled due to excellent
 # CSV file paths (relative to script location)
 DATA_FOLDER = os.path.dirname(os.path.abspath(__file__))
 
-TECHNICIANS_PATH = os.path.join(DATA_FOLDER, "technicians_10k.csv")
-CALENDAR_PATH = os.path.join(DATA_FOLDER, "technician_calendar_10k.csv")
-DISPATCHES_PATH = os.path.join(DATA_FOLDER, "current_dispatches_10k.csv")
-# Updated to use the hackathon dataset (15,000 records, high quality - see DATASET_EVALUATION_REPORT.md)
+# Using hackathon dataset (15,000 records, high quality - see DATASET_EVALUATION_REPORT.md)
+TECHNICIANS_PATH = os.path.join(DATA_FOLDER, "technicians_hackathon_10k.csv")
+CALENDAR_PATH = os.path.join(DATA_FOLDER, "technician_calendar_hackathon_10k.csv")
+DISPATCHES_PATH = os.path.join(DATA_FOLDER, "current_dispatches_hackathon_10k.csv")
 HISTORY_PATH = os.path.join(DATA_FOLDER, "dispatch_history_hackathon_10k.csv")
 
 # Output file
