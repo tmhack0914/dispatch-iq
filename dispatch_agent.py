@@ -163,10 +163,24 @@ FALLBACK_CONFIDENCE_MULTIPLIER = {
 ENABLE_SEASONAL_ADJUSTMENT = True  # Enable dynamic threshold adjustment
 
 # Seasonal Strategy Selection
-SEASONAL_STRATEGY = "auto"  # Options: "auto", "manual", "time_based", "demand_based", "availability_based"
+SEASONAL_STRATEGY = "intelligent_auto"  # Options: "intelligent_auto", "auto", "manual", "time_based", "demand_based", "availability_based"
+# "intelligent_auto" = NEW! Automatically analyzes dispatch load and chooses best strategy
+# "auto" = Time-based only (original behavior)
 
 # Manual season override (if SEASONAL_STRATEGY = "manual")
 MANUAL_SEASON = "normal"  # Options: "peak", "normal", "low"
+
+# Intelligent Auto Settings
+INTELLIGENT_AUTO_CONFIG = {
+    'enable_demand_override': True,   # Allow demand to override time-based
+    'enable_availability_override': True,  # Allow availability to override
+    'demand_baseline': 500,           # Average daily dispatches (auto-calculated if None)
+    'high_demand_threshold': 1.5,     # > 150% of average
+    'low_demand_threshold': 0.8,      # < 80% of average
+    'high_availability': 50,          # > 50 techs
+    'low_availability': 20,           # < 20 techs
+    'priority_order': ['demand', 'availability', 'time']  # Which factors take precedence
+}
 
 # Define threshold configurations for each season
 SEASONAL_CONFIGS = {
@@ -351,6 +365,167 @@ def get_fallback_skills(required_skill):
 # SEASONAL ADJUSTMENT FUNCTION
 # ============================================================
 
+def intelligent_auto_select(dispatch_count, available_tech_count, current_date=None):
+    """
+    INTELLIGENT AUTO-SELECTION: Analyzes current conditions and chooses best strategy.
+    
+    This is the "smart" mode that looks at actual dispatch load and availability
+    to automatically decide whether to use demand-based, availability-based, or time-based.
+    
+    Args:
+        dispatch_count: Number of dispatches to optimize today
+        available_tech_count: Number of available technicians
+        current_date: datetime object (defaults to now)
+    
+    Returns:
+        tuple: (chosen_strategy, season_name, config_dict, reason)
+    """
+    import datetime
+    
+    if current_date is None:
+        current_date = datetime.datetime.now()
+    
+    reasons = []
+    scores = {'demand': 0, 'availability': 0, 'time': 0}
+    
+    # Calculate demand baseline (use config or estimate from history)
+    baseline = INTELLIGENT_AUTO_CONFIG.get('demand_baseline', 500)
+    
+    # FACTOR 1: Demand Analysis
+    if dispatch_count is not None and INTELLIGENT_AUTO_CONFIG.get('enable_demand_override', True):
+        demand_ratio = dispatch_count / baseline
+        
+        if demand_ratio > INTELLIGENT_AUTO_CONFIG['high_demand_threshold']:
+            scores['demand'] = 10  # High priority
+            reasons.append(f"HIGH DEMAND: {dispatch_count} dispatches ({demand_ratio:.1%} of baseline)")
+            demand_config = DEMAND_THRESHOLDS['high_demand']
+            demand_season = 'high_demand'
+        elif demand_ratio < INTELLIGENT_AUTO_CONFIG['low_demand_threshold']:
+            scores['demand'] = 8  # Medium-high priority
+            reasons.append(f"LOW DEMAND: {dispatch_count} dispatches ({demand_ratio:.1%} of baseline)")
+            demand_config = DEMAND_THRESHOLDS['low_demand']
+            demand_season = 'low_demand'
+        else:
+            scores['demand'] = 2  # Low priority (normal)
+            reasons.append(f"Normal demand: {dispatch_count} dispatches ({demand_ratio:.1%} of baseline)")
+            demand_config = DEMAND_THRESHOLDS['normal_demand']
+            demand_season = 'normal_demand'
+    else:
+        demand_config = None
+        demand_season = None
+    
+    # FACTOR 2: Availability Analysis
+    if available_tech_count is not None and INTELLIGENT_AUTO_CONFIG.get('enable_availability_override', True):
+        if available_tech_count > INTELLIGENT_AUTO_CONFIG['high_availability']:
+            scores['availability'] = 9  # High priority
+            reasons.append(f"HIGH AVAILABILITY: {available_tech_count} techs available (can be selective)")
+            avail_config = AVAILABILITY_THRESHOLDS['high_availability']
+            avail_season = 'high_availability'
+        elif available_tech_count < INTELLIGENT_AUTO_CONFIG['low_availability']:
+            scores['availability'] = 10  # Highest priority (emergency)
+            reasons.append(f"LOW AVAILABILITY: Only {available_tech_count} techs available (need flexibility)")
+            avail_config = AVAILABILITY_THRESHOLDS['low_availability']
+            avail_season = 'low_availability'
+        else:
+            scores['availability'] = 2  # Low priority (normal)
+            reasons.append(f"Normal availability: {available_tech_count} techs")
+            avail_config = AVAILABILITY_THRESHOLDS['normal_availability']
+            avail_season = 'normal_availability'
+    else:
+        avail_config = None
+        avail_season = None
+    
+    # FACTOR 3: Time-based (always available as fallback)
+    current_hour = current_date.hour
+    current_month = current_date.month
+    
+    # Check time of day
+    time_config = None
+    time_season = None
+    for season_key in ['morning', 'afternoon', 'evening']:
+        config = SEASONAL_CONFIGS[season_key]
+        if config['hours'] and current_hour in config['hours']:
+            time_config = config
+            time_season = season_key
+            scores['time'] = 5  # Medium priority
+            reasons.append(f"Time: {season_key.capitalize()} ({current_hour}:00)")
+            break
+    
+    # If no time match, check month
+    if time_config is None:
+        for season_key in ['peak', 'low', 'normal']:
+            config = SEASONAL_CONFIGS[season_key]
+            if config['months'] and current_month in config['months']:
+                time_config = config
+                time_season = season_key
+                scores['time'] = 4  # Lower priority
+                reasons.append(f"Season: {season_key.capitalize()} (Month {current_month})")
+                break
+    
+    # Default time fallback
+    if time_config is None:
+        time_config = SEASONAL_CONFIGS['normal']
+        time_season = 'normal'
+        scores['time'] = 1
+        reasons.append("Time: Default (normal)")
+    
+    # DECISION LOGIC: Follow priority order
+    priority_order = INTELLIGENT_AUTO_CONFIG.get('priority_order', ['demand', 'availability', 'time'])
+    
+    # Sort by score (highest first), then by priority order
+    factors = [
+        ('demand', scores['demand'], demand_config, demand_season),
+        ('availability', scores['availability'], avail_config, avail_season),
+        ('time', scores['time'], time_config, time_season)
+    ]
+    
+    # Sort by score descending
+    factors_sorted = sorted(factors, key=lambda x: x[1], reverse=True)
+    
+    # Choose the highest scoring factor that has a config
+    chosen_factor = None
+    chosen_config = None
+    chosen_season = None
+    
+    for factor_name, score, config, season in factors_sorted:
+        if config is not None and score > 5:  # Only choose if high priority
+            chosen_factor = factor_name
+            chosen_config = config
+            chosen_season = season
+            break
+    
+    # If no high-priority factor, use priority order
+    if chosen_factor is None:
+        for factor_name in priority_order:
+            if factor_name == 'demand' and demand_config:
+                chosen_factor = 'demand'
+                chosen_config = demand_config
+                chosen_season = demand_season
+                break
+            elif factor_name == 'availability' and avail_config:
+                chosen_factor = 'availability'
+                chosen_config = avail_config
+                chosen_season = avail_season
+                break
+            elif factor_name == 'time' and time_config:
+                chosen_factor = 'time'
+                chosen_config = time_config
+                chosen_season = time_season
+                break
+    
+    # Final fallback
+    if chosen_config is None:
+        chosen_factor = 'time'
+        chosen_config = time_config
+        chosen_season = time_season
+    
+    # Build reason string
+    reason_str = " | ".join(reasons)
+    decision_str = f"CHOSEN: {chosen_factor.upper()}-based (score: {scores[chosen_factor]})"
+    
+    return chosen_factor, chosen_season, chosen_config, f"{decision_str} | {reason_str}"
+
+
 def determine_season(strategy='auto', manual_season='normal', current_date=None, 
                      dispatch_count=None, available_tech_count=None):
     """
@@ -374,6 +549,18 @@ def determine_season(strategy='auto', manual_season='normal', current_date=None,
     current_month = current_date.month
     current_hour = current_date.hour
     current_day_of_week = current_date.weekday()  # 0=Monday, 6=Sunday
+    
+    # Intelligent auto-selection (NEW!)
+    if strategy == "intelligent_auto":
+        chosen_strategy, season_name, config, reason = intelligent_auto_select(
+            dispatch_count=dispatch_count,
+            available_tech_count=available_tech_count,
+            current_date=current_date
+        )
+        # Add metadata for display
+        config['chosen_by'] = chosen_strategy
+        config['selection_reason'] = reason
+        return season_name, config
     
     # Manual override
     if strategy == "manual":
@@ -473,6 +660,13 @@ def apply_seasonal_adjustment(enable=True, strategy='auto', manual_season='norma
     print("🌍 SEASONAL ADJUSTMENT APPLIED")
     print("="*80)
     print(f"   Strategy:       {strategy.upper()}")
+    
+    # Show intelligent auto details if available
+    if strategy == "intelligent_auto" and 'selection_reason' in config:
+        print(f"   🧠 Analysis:     {config['selection_reason']}")
+        if 'chosen_by' in config:
+            print(f"   🎯 Chosen By:    {config['chosen_by'].upper()}-based strategy")
+    
     print(f"   Season:         {config_name} ({season_name})")
     print(f"   Description:    {description}")
     print(f"   MIN Threshold:  {new_min_threshold:.2f} (was {0.27:.2f})")
@@ -487,11 +681,49 @@ def apply_seasonal_adjustment(enable=True, strategy='auto', manual_season='norma
 # ============================================================
 
 # Apply seasonal adjustment before loading data
+# For intelligent_auto, we need to peek at dispatch/tech counts first
+dispatch_count_for_adjustment = None
+available_tech_count_for_adjustment = None
+
+if ENABLE_SEASONAL_ADJUSTMENT and SEASONAL_STRATEGY == "intelligent_auto":
+    print("\n🧠 INTELLIGENT AUTO MODE: Analyzing dispatch load...\n")
+    
+    # Quick peek at dispatch count (without full processing)
+    try:
+        import pandas as pd
+        temp_dispatches = pd.read_csv(DISPATCHES_PATH)
+        dispatch_count_for_adjustment = min(len(temp_dispatches), MAX_DISPATCHES)
+        print(f"   📊 Detected: {dispatch_count_for_adjustment} dispatches to optimize")
+    except Exception as e:
+        print(f"   ⚠️  Could not read dispatch count: {e}")
+        dispatch_count_for_adjustment = None
+    
+    # Quick peek at available technician count
+    try:
+        temp_calendar = pd.read_csv(CALENDAR_PATH)
+        # Count unique available technicians (assuming 'Available' column or similar)
+        if 'Available' in temp_calendar.columns:
+            available_tech_count_for_adjustment = temp_calendar[temp_calendar['Available'] == True]['Technician_id'].nunique()
+        elif 'Technician_id' in temp_calendar.columns:
+            available_tech_count_for_adjustment = temp_calendar['Technician_id'].nunique()
+        else:
+            available_tech_count_for_adjustment = None
+        
+        if available_tech_count_for_adjustment:
+            print(f"   👥 Detected: {available_tech_count_for_adjustment} available technicians")
+    except Exception as e:
+        print(f"   ⚠️  Could not read technician count: {e}")
+        available_tech_count_for_adjustment = None
+    
+    print()
+
 if ENABLE_SEASONAL_ADJUSTMENT:
     MIN_SUCCESS_THRESHOLD, MAX_CAPACITY_RATIO, current_season, season_desc = apply_seasonal_adjustment(
         enable=ENABLE_SEASONAL_ADJUSTMENT,
         strategy=SEASONAL_STRATEGY,
-        manual_season=MANUAL_SEASON
+        manual_season=MANUAL_SEASON,
+        dispatch_count=dispatch_count_for_adjustment,
+        available_tech_count=available_tech_count_for_adjustment
     )
 
 print("\n📥 Loading data from CSV files...\n")
