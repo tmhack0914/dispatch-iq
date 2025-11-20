@@ -30,11 +30,32 @@ def to_scalar(value):
     if isinstance(value, (int, float, bool, str)):
         return value
     
-    # Handle pandas Series - extract the single value
-    if hasattr(value, 'iloc') and len(value) == 1:
-        return value.iloc[0]
+    # Handle NaN/None
+    if pd.isna(value):
+        return 0
     
-    # Handle numpy types
+    # Handle pandas Series
+    if hasattr(value, 'iloc'):
+        if len(value) == 0:
+            return 0
+        elif len(value) == 1:
+            return to_scalar(value.iloc[0])  # Recursive call for nested types
+        else:
+            # Multiple values - shouldn't happen for aggregations, but handle it
+            # Take the first value as a fallback
+            return to_scalar(value.iloc[0])
+    
+    # Handle numpy arrays
+    if isinstance(value, np.ndarray):
+        if value.size == 0:
+            return 0
+        elif value.size == 1:
+            return to_scalar(value.flat[0])  # Get the single element
+        else:
+            # Multiple values - take first
+            return to_scalar(value.flat[0])
+    
+    # Handle numpy scalar types
     if isinstance(value, (np.integer, np.floating, np.bool_)):
         return value.item()
     
@@ -42,19 +63,24 @@ def to_scalar(value):
     if hasattr(value, 'item'):
         try:
             return value.item()
-        except (ValueError, TypeError):
+        except (ValueError, TypeError) as e:
+            # If .item() fails, try alternative extraction
             pass
     
-    # Try direct conversion
+    # Try converting to float/int directly
     try:
-        # If it's array-like with one element
-        if hasattr(value, '__len__') and len(value) == 1:
-            return float(value) if isinstance(value, (float, np.floating)) else int(value)
+        return float(value)
     except (TypeError, ValueError):
         pass
     
-    # Last resort - return as is
-    return value
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        pass
+    
+    # Last resort - return 0 for safety
+    print(f"Warning: Could not convert value to scalar: {type(value)}, returning 0")
+    return 0
 
 # Page configuration
 st.set_page_config(
