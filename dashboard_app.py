@@ -20,6 +20,16 @@ except ImportError:
     AI_AVAILABLE = False
     print("AI Assistant not available. Install ai_assistant.py to enable.")
 
+# Global helper function for pandas scalar conversion
+def to_scalar(value):
+    """
+    Convert pandas Series/scalar to Python native type.
+    Handles pandas 3.x stricter type conversion.
+    """
+    if hasattr(value, 'item'):
+        return value.item()
+    return value
+
 # Page configuration
 st.set_page_config(
     page_title="Dispatch-IQ",
@@ -491,20 +501,24 @@ if view_mode == "📋 Assignments (Manager)":
     with col1:
         st.metric("Total Dispatches", len(filtered_assignments))
     
+    # Helper for scalar conversion
+    def to_scalar(val):
+        return val.item() if hasattr(val, 'item') else val
+    
     with col2:
-        assigned = int(filtered_assignments['Optimized_technician_id'].notna().sum())
+        assigned = int(to_scalar(filtered_assignments['Optimized_technician_id'].notna().sum()))
         st.metric("Assigned", assigned, f"{(assigned/len(filtered_assignments)*100):.1f}%")
     
     with col3:
-        unassigned = int(filtered_assignments['Optimized_technician_id'].isna().sum())
+        unassigned = int(to_scalar(filtered_assignments['Optimized_technician_id'].isna().sum()))
         st.metric("Unassigned", unassigned, delta_color="inverse" if unassigned > 0 else "off")
     
     with col4:
-        avg_success = float(filtered_assignments['Predicted_success_prob'].mean())
+        avg_success = float(to_scalar(filtered_assignments['Predicted_success_prob'].mean()))
         st.metric("Avg Success Prob", f"{avg_success:.3f}")
     
     with col5:
-        avg_distance = float(filtered_assignments['Optimized_distance_km'].mean())
+        avg_distance = float(to_scalar(filtered_assignments['Optimized_distance_km'].mean()))
         st.metric("Avg Distance", f"{avg_distance:.1f} km")
     
     st.markdown("---")
@@ -659,22 +673,26 @@ elif view_mode == "👷 Technician View":
     with col1:
         st.metric("📋 Total Jobs", len(tech_assignments))
     
+    # Helper for scalar conversion
+    def to_scalar(val):
+        return val.item() if hasattr(val, 'item') else val
+    
     with col2:
-        avg_success = float(tech_assignments['Predicted_success_prob'].mean())
+        avg_success = float(to_scalar(tech_assignments['Predicted_success_prob'].mean()))
         success_color = "🟢" if avg_success >= 0.7 else "🟡" if avg_success >= 0.5 else "🔴"
         st.metric("🎯 Avg Success", f"{avg_success:.1%}", f"{success_color}")
     
     with col3:
-        total_distance = float(tech_assignments['Optimized_distance_km'].sum())
+        total_distance = float(to_scalar(tech_assignments['Optimized_distance_km'].sum()))
         st.metric("🚗 Total Distance", f"{total_distance:.1f} km")
     
     with col4:
-        total_duration = float(tech_assignments['Optimized_predicted_duration_min'].sum())
+        total_duration = float(to_scalar(tech_assignments['Optimized_predicted_duration_min'].sum()))
         hours = total_duration / 60
         st.metric("⏱️ Est. Time", f"{hours:.1f} hrs")
     
     with col5:
-        avg_workload = float(tech_assignments['Optimized_workload_ratio'].mean())
+        avg_workload = float(to_scalar(tech_assignments['Optimized_workload_ratio'].mean()))
         workload_emoji = "🔴" if avg_workload > 0.8 else "🟡" if avg_workload > 0.5 else "🟢"
         st.metric("📊 Workload", f"{avg_workload:.0%}", f"{workload_emoji}")
     
@@ -1277,16 +1295,24 @@ else:
 
     # Calculate key metrics
     total_dispatches = len(filtered_df)
-    assigned_dispatches = int(filtered_df['Optimized_technician_id'].notna().sum())
+    
+    # Helper function to safely extract scalar from pandas operations
+    def to_scalar(value):
+        """Convert pandas Series/scalar to Python native type"""
+        if hasattr(value, 'item'):
+            return value.item()
+        return value
+    
+    assigned_dispatches = int(to_scalar(filtered_df['Optimized_technician_id'].notna().sum()))
     unassigned_dispatches = int(total_dispatches - assigned_dispatches)
     assignment_rate = (assigned_dispatches / total_dispatches * 100) if total_dispatches > 0 else 0
     
-    avg_success_prob = float(filtered_df['Predicted_success_prob'].mean() if 'Predicted_success_prob' in filtered_df.columns else 0)
-    avg_opt_score = float(filtered_df['Optimization_score'].mean() if 'Optimization_score' in filtered_df.columns else 0)
-    avg_distance = float(filtered_df['Optimized_distance_km'].mean() if 'Optimized_distance_km' in filtered_df.columns else 0)
+    avg_success_prob = float(to_scalar(filtered_df['Predicted_success_prob'].mean() if 'Predicted_success_prob' in filtered_df.columns else 0))
+    avg_opt_score = float(to_scalar(filtered_df['Optimization_score'].mean() if 'Optimization_score' in filtered_df.columns else 0))
+    avg_distance = float(to_scalar(filtered_df['Optimized_distance_km'].mean() if 'Optimized_distance_km' in filtered_df.columns else 0))
     
     # Count warnings
-    has_warnings = int(filtered_df['Has_warnings'].sum() if 'Has_warnings' in filtered_df.columns else 0)
+    has_warnings = int(to_scalar(filtered_df['Has_warnings'].sum() if 'Has_warnings' in filtered_df.columns else 0))
     warning_rate = (has_warnings / total_dispatches * 100) if total_dispatches > 0 else 0
 
     with col1:
