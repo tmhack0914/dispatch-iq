@@ -24,10 +24,36 @@ except ImportError:
 def to_scalar(value):
     """
     Convert pandas Series/scalar to Python native type.
-    Handles pandas 3.x stricter type conversion.
+    Handles pandas 3.x stricter type conversion and various data types.
     """
-    if hasattr(value, 'item'):
+    # Already a Python scalar type
+    if isinstance(value, (int, float, bool, str)):
+        return value
+    
+    # Handle pandas Series - extract the single value
+    if hasattr(value, 'iloc') and len(value) == 1:
+        return value.iloc[0]
+    
+    # Handle numpy types
+    if isinstance(value, (np.integer, np.floating, np.bool_)):
         return value.item()
+    
+    # Try .item() method for pandas/numpy scalars
+    if hasattr(value, 'item'):
+        try:
+            return value.item()
+        except (ValueError, TypeError):
+            pass
+    
+    # Try direct conversion
+    try:
+        # If it's array-like with one element
+        if hasattr(value, '__len__') and len(value) == 1:
+            return float(value) if isinstance(value, (float, np.floating)) else int(value)
+    except (TypeError, ValueError):
+        pass
+    
+    # Last resort - return as is
     return value
 
 # Page configuration
