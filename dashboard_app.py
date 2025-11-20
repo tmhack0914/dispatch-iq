@@ -1,7 +1,7 @@
 """
 Dispatch-IQ: Smart Dispatch Dashboard
 AI-powered interactive web application for dispatch optimization and technician assignment
-Version: 2.1.3 (Pandas 3.x Compatible - Full Array Support)
+Version: 2.1.5 (Pandas 3.x Compatible - Duplicate Columns Fixed)
 """
 
 import streamlit as st
