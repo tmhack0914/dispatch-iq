@@ -175,12 +175,19 @@ def load_data():
             
             # Before merging, drop any columns from dispatches that would conflict
             # This prevents duplicate columns after merge
+            # Check both lowercase and capitalized versions
             columns_to_add = ['optimized_technician_id', 'success_probability', 
                             'estimated_duration', 'distance', 'skill_match', 'score', 
                             'has_warnings', 'warning_count']
+            
+            # Drop conflicting columns (case-insensitive check)
+            dispatches_lower = {col.lower(): col for col in dispatches.columns}
             for col in columns_to_add:
-                if col in dispatches.columns:
-                    dispatches = dispatches.drop(columns=[col])
+                # Check lowercase version
+                if col.lower() in dispatches_lower:
+                    actual_col = dispatches_lower[col.lower()]
+                    dispatches = dispatches.drop(columns=[actual_col])
+                    print(f"  Dropped conflicting column: {actual_col}")
             
             # Merge optimized assignments with dispatch details
             df = dispatches.merge(
