@@ -228,12 +228,11 @@ class DataLoader:
                 calendar = pd.read_sql_query(query, self.connection)
                 calendar['date'] = pd.to_datetime(calendar['date']).dt.date
                 
-                # Save to CSV for future fallback use
-                if not os.path.exists('calendar.csv'):
-                    calendar.to_csv('calendar.csv', index=False)
-                    print(f"  ✓ Created calendar.csv for future fallback use")
-                
+                # Save to CSV for future fallback use (always update to keep it fresh)
+                calendar.to_csv('technician_calendar_10k.csv', index=False)
                 print(f"  ✓ Loaded {len(calendar)} calendar entries from PostgreSQL")
+                print(f"  ✓ Updated technician_calendar_10k.csv for future fallback use")
+                
                 return calendar
                 
             except Exception as e:
@@ -243,12 +242,13 @@ class DataLoader:
         
         # CSV Fallback
         try:
-            if not os.path.exists('calendar.csv'):
-                # Generate default calendar if neither DB nor CSV available
-                print("  ⚠️  calendar.csv not found, generating default calendar...")
-                return self._generate_default_calendar()
+            if not os.path.exists('technician_calendar_10k.csv'):
+                raise FileNotFoundError(
+                    "technician_calendar_10k.csv not found! Please run 'python export_calendar.py' "
+                    "to export calendar data from PostgreSQL first."
+                )
             
-            calendar = pd.read_csv('calendar.csv')
+            calendar = pd.read_csv('technician_calendar_10k.csv')
             
             # Standardize column names
             column_mapping = {
@@ -270,61 +270,22 @@ class DataLoader:
             print(f"  ✓ Loaded {len(calendar)} calendar entries from CSV")
             return calendar
             
+        except FileNotFoundError as e:
+            print(f"  ✗ {str(e)}")
+            raise
         except Exception as e:
-            print(f"  ⚠️  Failed to load calendar from CSV: {str(e)}")
-            print("  → Generating default calendar...")
-            return self._generate_default_calendar()
-    
-    def _generate_default_calendar(self) -> pd.DataFrame:
-        """Generate a default calendar when both PostgreSQL and CSV fail"""
-        try:
-            # Load technicians to get IDs
-            if os.path.exists('technicians.csv'):
-                technicians = pd.read_csv('technicians.csv')
-                tech_ids = technicians['Technician_id'].unique() if 'Technician_id' in technicians.columns else []
-            else:
-                print("  ⚠️  Cannot generate default calendar without technicians.csv")
-                return pd.DataFrame(columns=['technician_id', 'date', 'available', 'start_time', 'end_time', 'max_assignments'])
-            
-            # Generate calendar for next 30 days
-            from datetime import datetime, timedelta
-            start_date = datetime.now().date()
-            dates = [start_date + timedelta(days=i) for i in range(30)]
-            
-            calendar_data = []
-            for tech_id in tech_ids[:100]:  # Limit to first 100 technicians for performance
-                for date in dates:
-                    calendar_data.append({
-                        'technician_id': tech_id,
-                        'date': date,
-                        'available': 1,
-                        'start_time': '08:00:00',
-                        'end_time': '17:00:00',
-                        'max_assignments': 8
-                    })
-            
-            calendar = pd.DataFrame(calendar_data)
-            
-            # Save for future use
-            calendar.to_csv('calendar.csv', index=False)
-            print(f"  ✓ Generated default calendar with {len(calendar)} entries")
-            print(f"  ✓ Saved to calendar.csv for future use")
-            
-            return calendar
-            
-        except Exception as e:
-            print(f"  ✗ Failed to generate default calendar: {str(e)}")
-            return pd.DataFrame(columns=['technician_id', 'date', 'available', 'start_time', 'end_time', 'max_assignments'])
+            print(f"  ✗ Failed to load calendar from CSV: {str(e)}")
+            raise
     
     def export_calendar_from_db(self, force: bool = False):
         """
-        Export calendar from PostgreSQL to CSV
+        Export calendar from PostgreSQL to CSV (same name as DB table)
         
         Args:
-            force: Force re-export even if calendar.csv exists
+            force: Force re-export even if technician_calendar_10k.csv exists
         """
-        if os.path.exists('calendar.csv') and not force:
-            print("  ℹ️  calendar.csv already exists. Use force=True to overwrite.")
+        if os.path.exists('technician_calendar_10k.csv') and not force:
+            print("  ℹ️  technician_calendar_10k.csv already exists. Use force=True to overwrite.")
             return
         
         if not self.connection:
@@ -345,9 +306,9 @@ class DataLoader:
             """
             
             calendar = pd.read_sql_query(query, self.connection)
-            calendar.to_csv('calendar.csv', index=False)
+            calendar.to_csv('technician_calendar_10k.csv', index=False)
             
-            print(f"  ✓ Exported {len(calendar)} calendar entries to calendar.csv")
+            print(f"  ✓ Exported {len(calendar)} calendar entries to technician_calendar_10k.csv")
             
         except Exception as e:
             print(f"  ✗ Failed to export calendar: {str(e)}")

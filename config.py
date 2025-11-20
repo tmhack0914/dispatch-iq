@@ -51,7 +51,7 @@ DATE_FILTER = '2025-11-12'  # Only process dispatches from this date onwards
 CSV_FILES = {
     'dispatches': 'current_dispatches.csv',
     'technicians': 'technicians.csv',
-    'calendar': 'calendar.csv',
+    'calendar': 'technician_calendar_10k.csv',
     'dispatch_history': 'dispatch_history.csv',
 }
 
