@@ -47,12 +47,12 @@ OVERLAP_THRESHOLD = {
 # Date filter for optimization
 DATE_FILTER = '2025-11-12'  # Only process dispatches from this date onwards
 
-# CSV fallback file paths
+# CSV fallback file paths (prioritizes hackathon_10k dataset)
 CSV_FILES = {
-    'dispatches': 'current_dispatches.csv',
-    'technicians': 'technicians.csv',
-    'calendar': 'technician_calendar_10k.csv',
-    'dispatch_history': 'dispatch_history.csv',
+    'dispatches': ['current_dispatches_hackathon_10k.csv', 'current_dispatches.csv'],
+    'technicians': ['technicians_hackathon_10k.csv', 'technicians.csv'],
+    'calendar': ['technician_calendar_hackathon_10k.csv', 'technician_calendar_10k.csv'],
+    'dispatch_history': ['dispatch_history_hackathon_10k.csv', 'dispatch_history.csv'],
 }
 
 # Output file paths

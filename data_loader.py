@@ -111,10 +111,15 @@ class DataLoader:
         
         # CSV Fallback
         try:
-            if not os.path.exists('current_dispatches.csv'):
-                raise FileNotFoundError("current_dispatches.csv not found")
+            # Try hackathon dataset first, then fall back to regular
+            if os.path.exists('current_dispatches_hackathon_10k.csv'):
+                csv_file = 'current_dispatches_hackathon_10k.csv'
+            elif os.path.exists('current_dispatches.csv'):
+                csv_file = 'current_dispatches.csv'
+            else:
+                raise FileNotFoundError("No dispatches CSV found (tried: current_dispatches_hackathon_10k.csv, current_dispatches.csv)")
             
-            dispatches = pd.read_csv('current_dispatches.csv')
+            dispatches = pd.read_csv(csv_file)
             
             # Standardize column names (handle different cases)
             column_mapping = {
@@ -148,7 +153,7 @@ class DataLoader:
                 (dispatches['appointment_start_datetime'] >= pd.to_datetime(date_filter))
             ]
             
-            print(f"  ✓ Loaded {len(dispatches)} dispatches from CSV (filtered >= {date_filter})")
+            print(f"  ✓ Loaded {len(dispatches)} dispatches from {csv_file} (filtered >= {date_filter})")
             return dispatches
             
         except Exception as e:
@@ -183,10 +188,15 @@ class DataLoader:
         
         # CSV Fallback
         try:
-            if not os.path.exists('technicians.csv'):
-                raise FileNotFoundError("technicians.csv not found")
+            # Try hackathon dataset first, then fall back to regular
+            if os.path.exists('technicians_hackathon_10k.csv'):
+                csv_file = 'technicians_hackathon_10k.csv'
+            elif os.path.exists('technicians.csv'):
+                csv_file = 'technicians.csv'
+            else:
+                raise FileNotFoundError("No technicians CSV found (tried: technicians_hackathon_10k.csv, technicians.csv)")
             
-            technicians = pd.read_csv('technicians.csv')
+            technicians = pd.read_csv(csv_file)
             
             # Standardize column names
             column_mapping = {
@@ -202,7 +212,7 @@ class DataLoader:
             
             technicians = technicians.rename(columns={k: v for k, v in column_mapping.items() if k in technicians.columns})
             
-            print(f"  ✓ Loaded {len(technicians)} technicians from CSV")
+            print(f"  ✓ Loaded {len(technicians)} technicians from {csv_file}")
             return technicians
             
         except Exception as e:
@@ -242,13 +252,19 @@ class DataLoader:
         
         # CSV Fallback
         try:
-            if not os.path.exists('technician_calendar_10k.csv'):
+            # Try hackathon dataset first, then fall back to regular
+            if os.path.exists('technician_calendar_hackathon_10k.csv'):
+                csv_file = 'technician_calendar_hackathon_10k.csv'
+            elif os.path.exists('technician_calendar_10k.csv'):
+                csv_file = 'technician_calendar_10k.csv'
+            else:
                 raise FileNotFoundError(
-                    "technician_calendar_10k.csv not found! Please run 'python export_calendar.py' "
-                    "to export calendar data from PostgreSQL first."
+                    "No calendar CSV found! Please run 'python export_calendar.py' "
+                    "to export calendar data from PostgreSQL first.\n"
+                    "Tried: technician_calendar_hackathon_10k.csv, technician_calendar_10k.csv"
                 )
             
-            calendar = pd.read_csv('technician_calendar_10k.csv')
+            calendar = pd.read_csv(csv_file)
             
             # Standardize column names
             column_mapping = {
@@ -267,7 +283,7 @@ class DataLoader:
             if 'available' in calendar.columns:
                 calendar = calendar[calendar['available'] == 1]
             
-            print(f"  ✓ Loaded {len(calendar)} calendar entries from CSV")
+            print(f"  ✓ Loaded {len(calendar)} calendar entries from {csv_file}")
             return calendar
             
         except FileNotFoundError as e:
