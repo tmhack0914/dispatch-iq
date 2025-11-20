@@ -163,6 +163,15 @@ def load_data():
             if 'Dispatch_id' in dispatches.columns:
                 dispatches = dispatches.rename(columns={'Dispatch_id': 'dispatch_id'})
             
+            # Before merging, drop any columns from dispatches that would conflict
+            # This prevents duplicate columns after merge
+            columns_to_add = ['optimized_technician_id', 'success_probability', 
+                            'estimated_duration', 'distance', 'skill_match', 'score', 
+                            'has_warnings', 'warning_count']
+            for col in columns_to_add:
+                if col in dispatches.columns:
+                    dispatches = dispatches.drop(columns=[col])
+            
             # Merge optimized assignments with dispatch details
             df = dispatches.merge(
                 optimized[['dispatch_id', 'optimized_technician_id', 'success_probability', 
@@ -171,6 +180,13 @@ def load_data():
                 on='dispatch_id',
                 how='left'
             )
+            
+            # Remove any duplicate columns that may have been created
+            df = df.loc[:, ~df.columns.duplicated()]
+            
+            # Remove duplicate index labels if any exist
+            if df.index.duplicated().any():
+                df = df[~df.index.duplicated(keep='first')]
             
             # Standardize column names to match dashboard expectations
             column_mapping = {
@@ -263,6 +279,14 @@ def load_data():
         # Fall back to old format if new format not available
         elif os.path.exists('optimized_dispatch_results.csv'):
             df = pd.read_csv('optimized_dispatch_results.csv')
+            
+            # Remove any duplicate columns
+            df = df.loc[:, ~df.columns.duplicated()]
+            
+            # Remove duplicate index labels if any exist
+            if df.index.duplicated().any():
+                df = df[~df.index.duplicated(keep='first')]
+            
             return df, None
         else:
             return None, "⚠️ No results file found. Please run: `python optimize_dispatches.py`"
