@@ -156,11 +156,123 @@ FALLBACK_CONFIDENCE_MULTIPLIER = {
 }
 
 # ============================================================
+# SEASONAL ADJUSTMENT LOGIC
+# ============================================================
+# Automatically adjust thresholds based on time of year, demand, or availability
+
+ENABLE_SEASONAL_ADJUSTMENT = True  # Enable dynamic threshold adjustment
+
+# Seasonal Strategy Selection
+SEASONAL_STRATEGY = "auto"  # Options: "auto", "manual", "time_based", "demand_based", "availability_based"
+
+# Manual season override (if SEASONAL_STRATEGY = "manual")
+MANUAL_SEASON = "normal"  # Options: "peak", "normal", "low"
+
+# Define threshold configurations for each season
+SEASONAL_CONFIGS = {
+    'peak': {
+        'name': 'Peak Season',
+        'min_success_threshold': 0.25,
+        'max_capacity_ratio': 1.15,
+        'description': 'Maximize coverage - holidays, high demand',
+        'months': [11, 12],  # November, December
+        'days_of_week': None,  # All days
+        'hours': None  # All hours
+    },
+    'normal': {
+        'name': 'Normal Operations',
+        'min_success_threshold': 0.27,
+        'max_capacity_ratio': 1.12,
+        'description': 'Balanced - year-round default',
+        'months': [3, 4, 5, 6, 7, 8, 9, 10],  # Mar-Oct
+        'days_of_week': None,
+        'hours': None
+    },
+    'low': {
+        'name': 'Low Season',
+        'min_success_threshold': 0.30,
+        'max_capacity_ratio': 1.10,
+        'description': 'Sustainability focus - low demand periods',
+        'months': [1, 2],  # January, February
+        'days_of_week': None,
+        'hours': None
+    },
+    # Time-of-day variations
+    'morning': {
+        'name': 'Morning (Selective)',
+        'min_success_threshold': 0.30,
+        'max_capacity_ratio': 1.10,
+        'description': 'Be selective early - plenty of time',
+        'months': None,
+        'days_of_week': None,
+        'hours': list(range(6, 12))  # 6 AM - 12 PM
+    },
+    'afternoon': {
+        'name': 'Afternoon (Balanced)',
+        'min_success_threshold': 0.27,
+        'max_capacity_ratio': 1.12,
+        'description': 'Balanced approach',
+        'months': None,
+        'days_of_week': None,
+        'hours': list(range(12, 17))  # 12 PM - 5 PM
+    },
+    'evening': {
+        'name': 'Evening (Flexible)',
+        'min_success_threshold': 0.25,
+        'max_capacity_ratio': 1.15,
+        'description': 'More flexible - time running out',
+        'months': None,
+        'days_of_week': None,
+        'hours': list(range(17, 22))  # 5 PM - 10 PM
+    }
+}
+
+# Demand-based thresholds (requires dispatch count estimation)
+DEMAND_THRESHOLDS = {
+    'high_demand': {  # > 150% of average
+        'min_success_threshold': 0.25,
+        'max_capacity_ratio': 1.20,
+        'description': 'High demand - be flexible'
+    },
+    'normal_demand': {  # 80-150% of average
+        'min_success_threshold': 0.27,
+        'max_capacity_ratio': 1.12,
+        'description': 'Normal demand - balanced'
+    },
+    'low_demand': {  # < 80% of average
+        'min_success_threshold': 0.30,
+        'max_capacity_ratio': 1.10,
+        'description': 'Low demand - be selective'
+    }
+}
+
+# Availability-based thresholds (requires technician availability data)
+AVAILABILITY_THRESHOLDS = {
+    'high_availability': {  # > 50 techs available
+        'min_success_threshold': 0.35,
+        'max_capacity_ratio': 1.00,
+        'description': 'Many techs available - be very selective'
+    },
+    'normal_availability': {  # 20-50 techs available
+        'min_success_threshold': 0.27,
+        'max_capacity_ratio': 1.12,
+        'description': 'Normal availability - balanced'
+    },
+    'low_availability': {  # < 20 techs available
+        'min_success_threshold': 0.20,
+        'max_capacity_ratio': 1.20,
+        'description': 'Few techs available - be flexible'
+    }
+}
+
+# ============================================================
 # ML-BASED ASSIGNMENT (replaces hard-coded fallback levels)
 # ============================================================
 USE_ML_BASED_ASSIGNMENT = True  # Use ML model to evaluate all technicians
-MIN_SUCCESS_THRESHOLD = 0.27     # BALANCED: Middle ground between 0.25 and 0.30 (testing recommended config)
-MAX_CAPACITY_RATIO = 1.12        # BALANCED: Middle ground between 1.10 and 1.15 (testing recommended config)
+
+# Base thresholds (will be overridden by seasonal adjustment if enabled)
+MIN_SUCCESS_THRESHOLD = 0.27     # BALANCED: Middle ground (default if seasonal disabled)
+MAX_CAPACITY_RATIO = 1.12        # BALANCED: Middle ground (default if seasonal disabled)
 
 # Legacy fallback system (DEPRECATED - kept for reference only)
 # The ML model now evaluates all technicians directly based on:
@@ -236,8 +348,151 @@ def get_fallback_skills(required_skill):
     return fallbacks
 
 # ============================================================
+# SEASONAL ADJUSTMENT FUNCTION
+# ============================================================
+
+def determine_season(strategy='auto', manual_season='normal', current_date=None, 
+                     dispatch_count=None, available_tech_count=None):
+    """
+    Determine the appropriate season/configuration based on strategy.
+    
+    Args:
+        strategy: "auto", "manual", "time_based", "demand_based", or "availability_based"
+        manual_season: Manual override season if strategy="manual"
+        current_date: datetime object (defaults to now)
+        dispatch_count: Number of dispatches to assign (for demand-based)
+        available_tech_count: Number of available technicians (for availability-based)
+    
+    Returns:
+        tuple: (season_name, config_dict)
+    """
+    import datetime
+    
+    if current_date is None:
+        current_date = datetime.datetime.now()
+    
+    current_month = current_date.month
+    current_hour = current_date.hour
+    current_day_of_week = current_date.weekday()  # 0=Monday, 6=Sunday
+    
+    # Manual override
+    if strategy == "manual":
+        if manual_season in SEASONAL_CONFIGS:
+            config = SEASONAL_CONFIGS[manual_season]
+            return manual_season, config
+        else:
+            print(f"⚠️  Invalid manual season '{manual_season}', defaulting to 'normal'")
+            return 'normal', SEASONAL_CONFIGS['normal']
+    
+    # Time-based: Check time of day first, then month
+    if strategy == "time_based" or strategy == "auto":
+        # Check time of day
+        for season_key in ['morning', 'afternoon', 'evening']:
+            config = SEASONAL_CONFIGS[season_key]
+            if config['hours'] and current_hour in config['hours']:
+                return season_key, config
+        
+        # Check month-based seasons
+        for season_key in ['peak', 'low', 'normal']:
+            config = SEASONAL_CONFIGS[season_key]
+            if config['months'] and current_month in config['months']:
+                return season_key, config
+        
+        # Default to normal
+        return 'normal', SEASONAL_CONFIGS['normal']
+    
+    # Demand-based
+    if strategy == "demand_based":
+        if dispatch_count is None:
+            print("⚠️  Demand-based strategy requires dispatch_count, using normal")
+            return 'normal_demand', DEMAND_THRESHOLDS['normal_demand']
+        
+        # Estimate average (this could be calculated from historical data)
+        average_daily_dispatches = 500  # Adjust based on your operation
+        demand_ratio = dispatch_count / average_daily_dispatches
+        
+        if demand_ratio > 1.5:
+            return 'high_demand', DEMAND_THRESHOLDS['high_demand']
+        elif demand_ratio < 0.8:
+            return 'low_demand', DEMAND_THRESHOLDS['low_demand']
+        else:
+            return 'normal_demand', DEMAND_THRESHOLDS['normal_demand']
+    
+    # Availability-based
+    if strategy == "availability_based":
+        if available_tech_count is None:
+            print("⚠️  Availability-based strategy requires available_tech_count, using normal")
+            return 'normal_availability', AVAILABILITY_THRESHOLDS['normal_availability']
+        
+        if available_tech_count > 50:
+            return 'high_availability', AVAILABILITY_THRESHOLDS['high_availability']
+        elif available_tech_count < 20:
+            return 'low_availability', AVAILABILITY_THRESHOLDS['low_availability']
+        else:
+            return 'normal_availability', AVAILABILITY_THRESHOLDS['normal_availability']
+    
+    # Default fallback
+    print(f"⚠️  Unknown strategy '{strategy}', defaulting to 'normal'")
+    return 'normal', SEASONAL_CONFIGS['normal']
+
+
+def apply_seasonal_adjustment(enable=True, strategy='auto', manual_season='normal',
+                              dispatch_count=None, available_tech_count=None):
+    """
+    Apply seasonal threshold adjustments.
+    
+    Returns:
+        tuple: (min_success_threshold, max_capacity_ratio, season_name, description)
+    """
+    global MIN_SUCCESS_THRESHOLD, MAX_CAPACITY_RATIO
+    
+    if not enable:
+        print("\n🔧 Seasonal adjustment: DISABLED")
+        print(f"   Using static thresholds: MIN={MIN_SUCCESS_THRESHOLD}, MAX={MAX_CAPACITY_RATIO}")
+        return MIN_SUCCESS_THRESHOLD, MAX_CAPACITY_RATIO, "static", "Static configuration"
+    
+    # Determine current season
+    season_name, config = determine_season(
+        strategy=strategy,
+        manual_season=manual_season,
+        dispatch_count=dispatch_count,
+        available_tech_count=available_tech_count
+    )
+    
+    # Extract thresholds
+    new_min_threshold = config.get('min_success_threshold', MIN_SUCCESS_THRESHOLD)
+    new_max_capacity = config.get('max_capacity_ratio', MAX_CAPACITY_RATIO)
+    description = config.get('description', 'No description')
+    config_name = config.get('name', season_name)
+    
+    # Apply adjustments
+    MIN_SUCCESS_THRESHOLD = new_min_threshold
+    MAX_CAPACITY_RATIO = new_max_capacity
+    
+    print("\n" + "="*80)
+    print("🌍 SEASONAL ADJUSTMENT APPLIED")
+    print("="*80)
+    print(f"   Strategy:       {strategy.upper()}")
+    print(f"   Season:         {config_name} ({season_name})")
+    print(f"   Description:    {description}")
+    print(f"   MIN Threshold:  {new_min_threshold:.2f} (was {0.27:.2f})")
+    print(f"   MAX Capacity:   {new_max_capacity:.2f} (was {1.12:.2f})")
+    print("="*80)
+    
+    return new_min_threshold, new_max_capacity, season_name, description
+
+
+# ============================================================
 # 1. LOAD DATASETS FROM CSV FILES
 # ============================================================
+
+# Apply seasonal adjustment before loading data
+if ENABLE_SEASONAL_ADJUSTMENT:
+    MIN_SUCCESS_THRESHOLD, MAX_CAPACITY_RATIO, current_season, season_desc = apply_seasonal_adjustment(
+        enable=ENABLE_SEASONAL_ADJUSTMENT,
+        strategy=SEASONAL_STRATEGY,
+        manual_season=MANUAL_SEASON
+    )
 
 print("\n📥 Loading data from CSV files...\n")
 
@@ -2352,6 +2607,15 @@ if USE_ML_BASED_ASSIGNMENT:
     print(f"   - Strategy:                 Evaluate ALL available technicians using ML model")
     print(f"   - Min success threshold:    {MIN_SUCCESS_THRESHOLD:.1%}")
     print(f"   - Max capacity ratio:       {MAX_CAPACITY_RATIO:.0%}")
+    
+    # Show seasonal adjustment info if enabled
+    if ENABLE_SEASONAL_ADJUSTMENT and 'current_season' in globals():
+        print(f"   - Seasonal adjustment:      ✅ ENABLED ({current_season})")
+        if 'season_desc' in globals():
+            print(f"   - Configuration:            {season_desc}")
+    else:
+        print(f"   - Seasonal adjustment:      ❌ Disabled (static thresholds)")
+    
     print(f"   - Scoring:                  Pure ML success probability")
     print(f"   - No hard-coded fallback levels (model learns from data)")
 else:
