@@ -31,11 +31,7 @@ def to_scalar(value):
     if isinstance(value, (int, float, bool, str)):
         return value
     
-    # Handle NaN/None
-    if pd.isna(value):
-        return 0
-    
-    # Handle pandas Series
+    # Handle pandas Series FIRST (before pd.isna check)
     if hasattr(value, 'iloc'):
         if len(value) == 0:
             return 0
@@ -55,6 +51,14 @@ def to_scalar(value):
         else:
             # Multiple values - take first
             return to_scalar(value.flat[0])
+    
+    # Handle NaN/None (only for scalar values, after Series/array handling)
+    try:
+        if pd.isna(value):
+            return 0
+    except (ValueError, TypeError):
+        # If pd.isna fails on the value type, continue to other checks
+        pass
     
     # Handle numpy scalar types
     if isinstance(value, (np.integer, np.floating, np.bool_)):
