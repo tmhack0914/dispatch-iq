@@ -1,7 +1,7 @@
 """
 Dispatch-IQ: Smart Dispatch Dashboard
 AI-powered interactive web application for dispatch optimization and technician assignment
-Version: 2.1.5 (Pandas 3.x Compatible - Duplicate Columns Fixed)
+Version: 2.1.6 (Pandas 3.x Compatible - Duplicate Columns Fixed at Source)
 """
 
 import streamlit as st
@@ -150,12 +150,22 @@ def load_data():
         if os.path.exists('optimized_assignments.csv'):
             # Load optimized assignments
             optimized = pd.read_csv('optimized_assignments.csv')
+            # Remove duplicate columns immediately after reading
+            optimized = optimized.loc[:, ~optimized.columns.duplicated()]
+            # Remove duplicate index labels if any
+            if optimized.index.duplicated().any():
+                optimized = optimized[~optimized.index.duplicated(keep='first')]
             
             # Load current dispatches for full details
             if not os.path.exists('current_dispatches.csv'):
                 return None, "⚠️ current_dispatches.csv not found. Please ensure your data files are present."
             
             dispatches = pd.read_csv('current_dispatches.csv')
+            # Remove duplicate columns immediately after reading
+            dispatches = dispatches.loc[:, ~dispatches.columns.duplicated()]
+            # Remove duplicate index labels if any
+            if dispatches.index.duplicated().any():
+                dispatches = dispatches[~dispatches.index.duplicated(keep='first')]
             
             # Standardize column names for merging
             # optimized_assignments.csv uses lowercase dispatch_id
