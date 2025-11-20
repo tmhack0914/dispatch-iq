@@ -1,6 +1,10 @@
 # 🧠 Intelligent Auto Dashboard
 
-**Dashboard for visualizing Intelligent Auto optimization results**
+**Comprehensive dashboard with visualization AND educational walkthrough**
+
+This integrated dashboard features **two pages** accessible via sidebar navigation:
+1. **📊 Dashboard** - Visualizes optimization results and performance metrics
+2. **🔍 How It Works** - Step-by-step explanation of the dispatch_agent.py algorithm
 
 ---
 
@@ -12,9 +16,11 @@ streamlit run intelligent_dashboard.py
 
 The dashboard will open in your browser at `http://localhost:8501`
 
+Use the **sidebar** to toggle between the Dashboard and How It Works pages.
+
 ---
 
-## 📊 Dashboard Features
+## 📊 Page 1: Dashboard Features
 
 ### **1. Intelligent Auto Analysis Section**
 - 📊 Input analysis (dispatches, technicians, demand ratio)
@@ -90,7 +96,39 @@ The dashboard will open in your browser at `http://localhost:8501`
 
 ---
 
-## 🎯 Dashboard Sections
+## 🔍 Page 2: How It Works Features
+
+An interactive educational walkthrough that explains the dispatch optimization algorithm step-by-step.
+
+### **Navigation Sections:**
+1. **Introduction** - Overview of the system and quick summary
+2. **Step 1: Auto Analysis** - How Intelligent Auto chooses thresholds
+3. **Step 2: Data Loading** - Four data sources and their purpose
+4. **Step 3: Skill Learning** - How skill compatibility is learned from history
+5. **Step 4: ML Training** - The 9-feature XGBoost model explained
+6. **Step 5: Assignment Logic** - Three-phase assignment process (Filter → Score → Select)
+7. **Step 6: Output** - Results generation and metrics
+8. **Process Flow** - Complete ASCII flowchart of the entire system
+9. **Design Decisions** - Trade-offs table for key choices
+10. **Summary** - Big picture view with configuration details
+
+### **Key Features:**
+- **Interactive Tabs** - Explore different aspects of complex topics
+- **Code Examples** - Pseudocode showing what happens at each step
+- **Real Data Examples** - Actual statistics from the current optimization
+- **Pros & Cons Analysis** - Trade-offs for each design decision
+- **Visual Flowcharts** - ASCII diagrams showing process flow
+- **Quick Navigation** - Sidebar radio buttons to jump between sections
+
+### **Perfect For:**
+- New team members learning the system
+- Stakeholders who need to understand the logic
+- Explaining decisions to non-technical audiences
+- Technical documentation and training
+
+---
+
+## 🎯 Page 1 Sections (Dashboard)
 
 ### **Section 1: Intelligent Auto Analysis**
 Shows how the system analyzed current conditions:

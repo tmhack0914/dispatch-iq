@@ -1,7 +1,19 @@
-# How It Works Dashboard - Educational Guide
+# How It Works - Educational Guide
+
+## ✨ Now Integrated into Main Dashboard!
+
+The "How It Works" educational content is now **integrated** into the main `intelligent_dashboard.py`. 
+
+Access it by:
+1. Running `streamlit run intelligent_dashboard.py`
+2. Selecting **"🔍 How It Works"** from the sidebar navigation
+
+The standalone `how_it_works.py` file is kept for reference but is no longer needed for regular use.
+
+---
 
 ## Overview
-`how_it_works.py` is an interactive Streamlit dashboard that provides a step-by-step walkthrough of how the `dispatch_agent.py` optimization algorithm works.
+This educational walkthrough provides a step-by-step explanation of how the `dispatch_agent.py` optimization algorithm works.
 
 ## Features
 
