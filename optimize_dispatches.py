@@ -82,75 +82,30 @@ class DispatchOptimizer:
         }
     
     def load_data(self):
-        """Load dispatches, technicians, and calendar data"""
-        print("\n[1/6] Loading data from database...")
+        """Load dispatches, technicians, and calendar data with PostgreSQL → CSV fallback"""
+        print("\n[1/6] Loading data...")
+        print("  Attempting PostgreSQL connection...")
+        
         loader = DataLoader()
         loader.connect()
         
         try:
-            schema = os.getenv('DB_SCHEMA', 'team_faiber_force')
+            # Load dispatches (with fallback)
+            dispatches = loader.load_dispatches(date_filter='2025-11-12')
             
-            # Load dispatches
-            dispatch_query = f"""
-            SELECT 
-                cd."Dispatch_id" as dispatch_id,
-                cd."Ticket_type" as ticket_type,
-                cd."Order_type" as order_type,
-                cd."Priority" as priority,
-                cd."Required_skill" as required_skill,
-                cd."Assigned_technician_id" as assigned_technician_id,
-                cd."Customer_latitude" as customer_latitude,
-                cd."Customer_longitude" as customer_longitude,
-                cd."Duration_min" as expected_duration,
-                cd."Appointment_start_datetime" as appointment_start_datetime,
-                cd."Appointment_end_datetime" as appointment_end_datetime,
-                cd."State" as state,
-                cd."City" as city
-            FROM {schema}.current_dispatches_csv cd
-            WHERE cd."Customer_latitude" IS NOT NULL 
-                AND cd."Customer_longitude" IS NOT NULL
-                AND cd."State" IS NOT NULL
-                AND DATE(cd."Appointment_start_datetime") >= '2025-11-12';
-            """
+            # Load technicians (with fallback)
+            technicians = loader.load_technicians()
             
-            dispatches = pd.read_sql_query(dispatch_query, loader.connection)
-            dispatches['appointment_start_datetime'] = pd.to_datetime(dispatches['appointment_start_datetime'])
-            dispatches['appointment_end_datetime'] = pd.to_datetime(dispatches['appointment_end_datetime'])
-            print(f"  [OK] Loaded {len(dispatches)} dispatches (excluding historical before 2025-11-12)")
+            # Load calendar (with fallback, will create calendar.csv if needed)
+            calendar = loader.load_calendar()
             
-            # Load technicians
-            tech_query = f"""
-            SELECT 
-                "Technician_id" as technician_id,
-                "Name" as technician_name,
-                "Primary_skill" as technician_skill,
-                "Latitude" as technician_latitude,
-                "Longitude" as technician_longitude,
-                "Workload_capacity" as workload_capacity,
-                "State" as state,
-                "City" as city
-            FROM {schema}.technicians_10k;
-            """
+            # Print data source summary
+            if loader.using_fallback:
+                print("\n  📁 Data Source: CSV Files (PostgreSQL unavailable)")
+            else:
+                print("\n  🗄️  Data Source: PostgreSQL Database")
             
-            technicians = pd.read_sql_query(tech_query, loader.connection)
-            print(f"  [OK] Loaded {len(technicians)} technicians")
-            
-            # Load technician calendar
-            calendar_query = f"""
-            SELECT 
-                "Technician_id" as technician_id,
-                "Date" as date,
-                "Available" as available,
-                "Start_time" as start_time,
-                "End_time" as end_time,
-                "Max_assignments" as max_assignments
-            FROM {schema}.technician_calendar_10k
-            WHERE "Available" = 1;
-            """
-            
-            calendar = pd.read_sql_query(calendar_query, loader.connection)
-            calendar['date'] = pd.to_datetime(calendar['date']).dt.date
-            print(f"  [OK] Loaded {len(calendar)} calendar entries")
+            print(f"  ✓ Total: {len(dispatches)} dispatches, {len(technicians)} technicians, {len(calendar)} calendar entries")
             
             return dispatches, technicians, calendar
             
