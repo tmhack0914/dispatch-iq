@@ -1,43 +1,53 @@
 # 🧪 Tuning Experiment Results
 
 **Date:** 2025-11-20  
-**Experiment:** Raising quality thresholds for better dispatch assignments
+**Experiment:** Testing threshold configurations for optimal dispatch assignments
 
 ---
 
 ## 📊 Experiment Overview
 
-### **Baseline Configuration (Run 1):**
+### **Three Configurations Tested:**
+
+#### **Baseline (Run 1):**
 ```python
 MIN_SUCCESS_THRESHOLD = 0.25  # Accept 25%+ success probability
 MAX_CAPACITY_RATIO = 1.15     # Allow up to 115% capacity
 ```
+**Goal:** Maximize assignment coverage
 
-### **Tuned Configuration (Run 2):**
+#### **Balanced (Run 3):** ⭐
 ```python
-MIN_SUCCESS_THRESHOLD = 0.30  # RAISED: Accept 30%+ success probability
-MAX_CAPACITY_RATIO = 1.10     # LOWERED: Allow only up to 110% capacity
+MIN_SUCCESS_THRESHOLD = 0.27  # MIDDLE: Accept 27%+ success probability
+MAX_CAPACITY_RATIO = 1.12     # MIDDLE: Allow up to 112% capacity
 ```
+**Goal:** Balance all factors
 
-**Goal:** Improve quality and reduce technician overload
+#### **Tuned (Run 2):**
+```python
+MIN_SUCCESS_THRESHOLD = 0.30  # STRICT: Accept 30%+ success probability
+MAX_CAPACITY_RATIO = 1.10     # STRICT: Allow only up to 110% capacity
+```
+**Goal:** Maximize sustainability and cost optimization
 
 ---
 
-## 📈 Results Comparison
+## 📈 Complete Results Comparison
 
-| Metric | Baseline (0.25/1.15) | Tuned (0.30/1.10) | Change | Winner |
-|--------|---------------------|-------------------|---------|---------|
-| **Assignment Rate** | 495/600 (82.5%) | 447/600 (74.5%) | -8.0% | ⚠️ Baseline |
-| **Unassigned** | 105 (17.5%) | 153 (25.5%) | +8.0% | ⚠️ Baseline |
-| **Success Prob Improvement** | +17.1% (0.466→0.545) | +8.6% (0.466→0.506) | -8.5% | ⚠️ Baseline |
-| **Mean Success Probability** | 54.5% | 50.6% | -3.9% | ⚠️ Baseline |
-| **Distance Reduction** | -40.1% (33.4→20.0 km) | -45.8% (33.4→18.1 km) | **+5.7%** | ✅ **Tuned** |
-| **Total Distance Saved** | 8,049 km | 9,183 km | **+1,134 km** | ✅ **Tuned** |
-| **Fuel Savings** | $4,024 | $4,591 | **+$567** | ✅ **Tuned** |
-| **Mean Workload Ratio** | 61.1% | 51.9% | **-9.2%** | ✅ **Tuned** |
-| **Techs over 80%** | 259 | 206 | **-53 techs** | ✅ **Tuned** |
-| **Techs over 100%** | 185 | 130 | **-55 techs** | ✅ **Tuned** |
-| **Improved Assignments** | 273 (45.5%) | 247 (41.2%) | -4.3% | ⚠️ Baseline |
+| Metric | Baseline (0.25/1.15) | **Balanced (0.27/1.12)** | Tuned (0.30/1.10) | Winner |
+|--------|---------------------|--------------------------|-------------------|---------|
+| **Assignment Rate** | 495/600 (82.5%) | **453/600 (75.5%)** | 447/600 (74.5%) | Baseline |
+| **Unassigned** | 105 (17.5%) | **147 (24.5%)** | 153 (25.5%) | Baseline |
+| **Success Improvement** | +17.1% | **+8.2%** | +8.6% | Baseline |
+| **Mean Success Prob** | 54.5% | **50.4%** | 50.6% | Baseline |
+| **Distance Reduction** | -40.1% | **-45.0%** | -45.8% | **Tuned** ✅ |
+| **Mean Distance (km)** | 20.0 km | **18.4 km** | 18.1 km | **Tuned** ✅ |
+| **Total Distance Saved** | 8,049 km | **9,028 km** | 9,183 km | **Tuned** ✅ |
+| **Fuel Savings** | $4,024 | **$4,514** | $4,591 | **Tuned** ✅ |
+| **Mean Workload** | 61.1% | **52.7%** | 51.9% | **Tuned** ✅ |
+| **Techs over 80%** | 259 | **209** | 206 | **Tuned** ✅ |
+| **Techs over 100%** | 185 | **132** | 130 | **Tuned** ✅ |
+| **Improved Assignments** | 273 (45.5%) | **247 (41.2%)** | 247 (41.2%) | Baseline |
 
 ---
 

@@ -159,8 +159,8 @@ FALLBACK_CONFIDENCE_MULTIPLIER = {
 # ML-BASED ASSIGNMENT (replaces hard-coded fallback levels)
 # ============================================================
 USE_ML_BASED_ASSIGNMENT = True  # Use ML model to evaluate all technicians
-MIN_SUCCESS_THRESHOLD = 0.30     # TUNED: Raised from 0.25 to 0.30 for higher quality (per ML_TUNING_GUIDE.md)
-MAX_CAPACITY_RATIO = 1.10        # TUNED: Lowered from 1.15 to 1.10 to reduce technician overload (259 were >80%)
+MIN_SUCCESS_THRESHOLD = 0.27     # BALANCED: Middle ground between 0.25 and 0.30 (testing recommended config)
+MAX_CAPACITY_RATIO = 1.12        # BALANCED: Middle ground between 1.10 and 1.15 (testing recommended config)
 
 # Legacy fallback system (DEPRECATED - kept for reference only)
 # The ML model now evaluates all technicians directly based on:
