@@ -1,6 +1,7 @@
 """
 Dispatch-IQ: Smart Dispatch Dashboard
 AI-powered interactive web application for dispatch optimization and technician assignment
+Version: 2.1.3 (Pandas 3.x Compatible - Full Array Support)
 """
 
 import streamlit as st
@@ -553,10 +554,6 @@ if view_mode == "📋 Assignments (Manager)":
     with col1:
         st.metric("Total Dispatches", len(filtered_assignments))
     
-    # Helper for scalar conversion
-    def to_scalar(val):
-        return val.item() if hasattr(val, 'item') else val
-    
     with col2:
         assigned = int(to_scalar(filtered_assignments['Optimized_technician_id'].notna().sum()))
         st.metric("Assigned", assigned, f"{(assigned/len(filtered_assignments)*100):.1f}%")
@@ -724,10 +721,6 @@ elif view_mode == "👷 Technician View":
     
     with col1:
         st.metric("📋 Total Jobs", len(tech_assignments))
-    
-    # Helper for scalar conversion
-    def to_scalar(val):
-        return val.item() if hasattr(val, 'item') else val
     
     with col2:
         avg_success = float(to_scalar(tech_assignments['Predicted_success_prob'].mean()))
@@ -1347,13 +1340,6 @@ else:
 
     # Calculate key metrics
     total_dispatches = len(filtered_df)
-    
-    # Helper function to safely extract scalar from pandas operations
-    def to_scalar(value):
-        """Convert pandas Series/scalar to Python native type"""
-        if hasattr(value, 'item'):
-            return value.item()
-        return value
     
     assigned_dispatches = int(to_scalar(filtered_df['Optimized_technician_id'].notna().sum()))
     unassigned_dispatches = int(total_dispatches - assigned_dispatches)
