@@ -37,7 +37,8 @@ USE_PURE_ML = False
 # Enable advanced assignment optimization features
 ENABLE_PERFORMANCE_TRACKING = True
 ENABLE_DYNAMIC_WEIGHTS = False  # DISABLED - weights were too extreme (0.90/0.10)
-ENABLE_ENHANCED_SUCCESS_MODEL = False  # DISABLED - insufficient training data (491 samples for 9 features)
+# ENABLED - Now using dispatch_history_hackathon_10k.csv with 15,000 high-quality records (see DATASET_EVALUATION_REPORT.md)
+ENABLE_ENHANCED_SUCCESS_MODEL = True  # Was False - Now enabled due to excellent dataset (15K records, 97/100 quality score)
 
 # ============================================================
 # 0. FILE CONFIGURATION
@@ -49,7 +50,8 @@ DATA_FOLDER = os.path.dirname(os.path.abspath(__file__))
 TECHNICIANS_PATH = os.path.join(DATA_FOLDER, "technicians_10k.csv")
 CALENDAR_PATH = os.path.join(DATA_FOLDER, "technician_calendar_10k.csv")
 DISPATCHES_PATH = os.path.join(DATA_FOLDER, "current_dispatches_10k.csv")
-HISTORY_PATH = os.path.join(DATA_FOLDER, "dispatch_history_10k.csv")
+# Updated to use the hackathon dataset (15,000 records, high quality - see DATASET_EVALUATION_REPORT.md)
+HISTORY_PATH = os.path.join(DATA_FOLDER, "dispatch_history_hackathon_10k.csv")
 
 # Output file
 OUTPUT_PATH = os.path.join(DATA_FOLDER, "optimized_dispatch_results.csv")
